@@ -2,96 +2,187 @@
 
 # predictive_app/schema.py
 from pydantic import BaseModel, Field, field_validator, ValidationError, ConfigDict
-from typing import Literal, Optional
+from typing import Optional, Literal
 
-# --- Enums "base" (ajusta si el CSV trae otros valores) ---
-Education = Literal["high_school", "associate", "bachelor", "master", "phd", "postdoc"]
-Gender = Literal["male", "female", "other", "prefer_not_to_say"]
-LangCEFR = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
-LangAlt = Literal["basic", "intermediate", "advanced", "fluent", "native"]
-EmpStatus = Literal[
-    "employed_full_time", "employed_part_time", "self_employed",
-    "unemployed", "further_study", "intern"
-]
 
-# Si finalmente usáis bandas para ranking, cambia a enum
+# -----------------------------
+# Conjunto de dominios (canónicos)
+# -----------------------------
+PAISES = {
+    "brasil", "china", "españa", "pakistán", "usa", "india", "vietnam", "nigeria"
+}
+
+GENEROS = {"hombre", "mujer", "otro"}
+
+TITULACIONES = {"grado", "master", "phd", "fp"}
+
+CAMPOS_ESTUDIO_CANON = {
+    "artes": "artes",
+    "ing": "ing",                # ingeniería abreviado "Ing"
+    "it": "it",
+    "salud": "salud",
+    "s.sociales": "s_sociales",  # lo normalizamos a "s_sociales"
+    "s_sociales": "s_sociales",
+    "empresa": "empresa",
+}
+
+NIVELES_INGLES_CANON = {
+    "básico": "basico",
+    "basico": "basico",
+    "intermedio": "intermedio",
+    "avanzado": "avanzado",
+    "fluido": "fluido",
+}
+
+SITUACIONES_LABORALES = {"estudiando", "desempleado", "empleado"}
+
+RANKING_UNI = {"alto", "medio", "bajo"}
+
+REGIONES_ESTUDIO = {"australia", "europa", "usa"}
+
+# -----------------------------
+# Modelo de petición
+# -----------------------------
 class PredictRequest(BaseModel):
-    # Categóricas "flexibles" por ahora (se cierran con metadata en producción)
-    country_of_origin: str
-    field_of_study: str
-    region_of_study: str
-
-    # Categóricas cerradas
-    education_level: Education
-    language_proficiency: str  # aceptamos CEFR o 5-niveles y normalizamos abajo
-    gender: Gender
-    employment_status: EmpStatus
-
-    # Numéricas
-    university_ranking: int = Field(ge=1, le=5000)
-    age: int = Field(ge=16, le=80)
-    years_since_graduation: int = Field(ge=0, le=40)
-    gpa: float = Field(ge=0, le=10)  # aceptamos 0–10 y luego normalizamos a 0–4
-    internship_experience: str  # "yes" | "no"  (o mapea desde bool/int)
-    
+    """
+    Campos canónicos esperados por la API (snake_case, en castellano).
+    'nombre' es opcional y NO se usa para el modelo (solo informativo).
+    """
     model_config = ConfigDict(extra="forbid")  # rechaza campos desconocidos
 
-    # --- Validaciones de strings no vacíos ---
-    @field_validator("country_of_origin", "field_of_study", "region_of_study")
+    # --- Datos personales ---
+    nombre: Optional[str] = Field(default=None, max_length=100)
+    edad: float = Field(ge=16, le=80, description="Edad en años (double)")
+
+    pais: str  # combobox (Brasil, China, España, Pakistán, USA, India, Vietnam, Nigeria)
+    genero: str  # (Hombre, Mujer, Otro)
+
+    # --- Datos de formación ---
+    titulacion: str  # (Grado, Master, PHD, Fp)
+    campo_estudio: str  # (Artes, Ing, IT, Salud, S.Sociales, Empresa)
+    nivel_ingles: str  # (Intermedio, Avanzado, Básico, Fluido)
+
+    situacion_laboral: str  # (Estudiando, Desempleado, empleado)
+
+    universidad_ranking: str  # (Alto, Medio, Bajo)
+
+    region_estudio: str  # (Australia, Europa, USA)
+
+    # -------------------------
+    # Validadores / Normalización
+    # -------------------------
+
+    # nombre opcional: limpiar espacios
+    @field_validator("nombre")
     @classmethod
-    def non_empty(cls, v: str) -> str:
+    def _clean_nombre(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
         v = v.strip()
-        if not v:
-            raise ValueError("must be a non-empty string")
-        if len(v) > 64:
-            raise ValueError("value too long")
-        return v
+        return v or None
 
-    # --- Normalización de language_proficiency ---
-    @field_validator("language_proficiency")
+    # país
+    @field_validator("pais")
     @classmethod
-    def normalize_language(cls, v: str) -> str:
-        v0 = v.strip()
-        # aceptar CEFR tal cual
-        if v0 in {"A1","A2","B1","B2","C1","C2"}:
-            return v0
-        # mapear 5 niveles comunes a CEFR aproximada
-        m = {
-            "basic": "A2",
-            "intermediate": "B2",
-            "advanced": "C1",
-            "fluent": "C1",
-            "native": "C2",
-        }
-        v1 = v0.lower()
-        if v1 in m:
-            return m[v1]
-        raise ValueError("language_proficiency must be CEFR (A1–C2) or one of basic/intermediate/advanced/fluent/native")
-
-    # --- Internship "yes/no" -> booleano textual consistente ---
-    @field_validator("internship_experience")
-    @classmethod
-    def normalize_internship(cls, v: str) -> str:
+    def _validate_pais(cls, v: str) -> str:
         v1 = v.strip().lower()
-        if v1 in {"yes", "no"}:
-            return v1
-        if v1 in {"true","1"}:
-            return "yes"
-        if v1 in {"false","0"}:
-            return "no"
-        raise ValueError("internship_experience must be 'yes' or 'no'")
+        # normalizar algunos alias frecuentes
+        alias = {
+            "pakistan": "pakistán",
+            "eeuu": "usa",
+            "estados unidos": "usa"
+        }
+        v1 = alias.get(v1, v1)
+        if v1 not in PAISES:
+            raise ValueError(f"pais debe ser uno de: {sorted(PAISES)}")
+        return v1
 
-    # --- Reglas cruzadas: edad vs años desde graduación ---
-    @field_validator("years_since_graduation")
+    # género
+    @field_validator("genero")
     @classmethod
-    def check_age_relation(cls, ysg: int, info):
-        # Pydantic v2: acceder al modelo parcial con info.data
-        age = info.data.get("age", None)
-        if age is not None and ysg > (age - 16):
-            raise ValueError("years_since_graduation inconsistent with age")
-        return ysg
+    def _validate_genero(cls, v: str) -> str:
+        v1 = v.strip().lower()
+        if v1 not in GENEROS:
+            raise ValueError(f"genero debe ser uno de: {sorted(GENEROS)}")
+        return v1
 
+    # titulación
+    @field_validator("titulacion")
+    @classmethod
+    def _validate_titulacion(cls, v: str) -> str:
+        v1 = v.strip().lower()
+        # normalización de variantes
+        if v1 in {"máster", "master"}:
+            v1 = "master"
+        if v1 in {"phd", "ph.d.", "doctorado"}:
+            v1 = "phd"
+        if v1 not in TITULACIONES:
+            raise ValueError(f"titulacion debe ser uno de: {sorted(TITULACIONES)}")
+        return v1
+
+    # campo de estudio
+    @field_validator("campo_estudio")
+    @classmethod
+    def _validate_campo_estudio(cls, v: str) -> str:
+        v0 = v.strip()
+        v1 = v0.lower()
+        # normalizar abreviaturas y puntos
+        if v1 == "s. sociales":
+            v1 = "s.sociales"
+        canon = CAMPOS_ESTUDIO_CANON.get(v1)
+        if not canon:
+            raise ValueError(
+                "campo_estudio no válido. Usa uno de: "
+                f"{sorted(set(CAMPOS_ESTUDIO_CANON.values()))} (admite 'Ing', 'S.Sociales', etc.)"
+            )
+        return canon
+
+    # nivel de inglés
+    @field_validator("nivel_ingles")
+    @classmethod
+    def _validate_nivel_ingles(cls, v: str) -> str:
+        v1 = v.strip().lower()
+        canon = NIVELES_INGLES_CANON.get(v1)
+        if not canon:
+            raise ValueError(f"nivel_ingles debe ser uno de: {sorted(set(NIVELES_INGLES_CANON.values()))}")
+        return canon
+
+    # situación laboral
+    @field_validator("situacion_laboral")
+    @classmethod
+    def _validate_situacion_laboral(cls, v: str) -> str:
+        v1 = v.strip().lower()
+        if v1 not in SITUACIONES_LABORALES:
+            raise ValueError(f"situacion_laboral debe ser uno de: {sorted(SITUACIONES_LABORALES)}")
+        return v1
+
+    # ranking de universidad
+    @field_validator("universidad_ranking")
+    @classmethod
+    def _validate_universidad_ranking(cls, v: str) -> str:
+        v1 = v.strip().lower()
+        if v1 not in RANKING_UNI:
+            raise ValueError(f"universidad_ranking debe ser uno de: {sorted(RANKING_UNI)}")
+        return v1
+
+    # región de estudio
+    @field_validator("region_estudio")
+    @classmethod
+    def _validate_region_estudio(cls, v: str) -> str:
+        v1 = v.strip().lower()
+        alias = {
+            "eeuu": "usa",
+            "estados unidos": "usa",
+        }
+        v1 = alias.get(v1, v1)
+        if v1 not in REGIONES_ESTUDIO:
+            raise ValueError(f"region_estudio debe ser uno de: {sorted(REGIONES_ESTUDIO)}")
+        return v1
+
+
+# -----------------------------
+# Modelo de respuesta
+# -----------------------------
 class PredictResponse(BaseModel):
     salary_pred: float
     model_version: str
-
