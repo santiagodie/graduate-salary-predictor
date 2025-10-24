@@ -1,0 +1,119 @@
+Restricciones por variable
+
+Nota: “estricto” = enum cerrado; “flexible” = string no vacío + lista blanca que podremos completar a partir del CSV.
+
+Country of Origin
+
+Tipo: str
+
+Restricción: flexible ahora (string no vacío, longitud ≤ 64).
+
+En producción: enum cerrado con los países observados en el dataset (normalizados a Title Case y, si queréis, mapeados a ISO-3166).
+
+Extra: permitir alias (“USA”→“United States”, “UK”→“United Kingdom”).
+
+Education Level
+
+Tipo: enum
+
+Sugerido (normalizado a minúsculas):
+{"high_school","associate","bachelor","master","phd","postdoc"}
+
+Rango lógico: jerarquía fija; útil para ordinal encoding (si algún modelo lo pide).
+
+Field of Study
+
+Tipo: str
+
+Restricción: flexible ahora (no vacío, ≤ 64).
+
+En producción: top-K categorías (p.ej. las 100 más frecuentes) y agrupar el resto en “other”.
+
+Language Proficiency
+
+Tipo: enum
+
+Dos opciones:
+a) Escala CEFR: {"A1","A2","B1","B2","C1","C2"}
+b) 5 niveles: {"basic","intermediate","advanced","fluent","native"}
+
+Elige una y normaliza. Yo prefiero CEFR si el dataset lo trae; si no, usa la de 5 niveles.
+
+Gender
+
+Tipo: enum
+
+{"male","female","other","prefer_not_to_say"}
+
+(Evitas nulos y strings libres; compatible con políticas de inclusión).
+
+University Ranking
+
+Tipo: int
+
+Rango: ge=1, le=5000 (amplio; ajusta al percentil real tras EDA).
+
+Alternativa: si el dataset trae bandas (“Top 100”, “101–500”…), usa enum con esas bandas.
+
+Region of Study
+
+Tipo: enum (si existe campo libre, conviene cerrarlo)
+
+Sugerido:
+{"africa","asia_east","asia_south","asia_southeast","europe","middle_east","north_america","south_america","oceania"}
+
+O usa flexible + normalización a partir del CSV (continente/megaregión).
+
+Age
+
+Tipo: int
+
+Rango: ge=16, le=80
+
+Years Since Graduation
+
+Tipo: int
+
+Rango: ge=0, le=40
+
+Regla cruzada: years_since_graduation <= age - 16 (aprox. edad mínima fin estudios).
+Si queréis ser más finos: age >= 18 + years_since_graduation.
+
+GPA
+
+Tipo: float
+
+El dataset puede venir en 0–4 o 0–10 (o %).
+
+Propuesta: aceptar 0–4 o 0–10 y normalizar internamente a escala 0–4:
+
+si gpa > 4 y <= 10: divide por 2.5
+
+si gpa > 10: 422
+
+si %: rechazamos (o convertimos si el dataset lo usa explícito).
+
+Internship Experience
+
+Tipo: booleano o enum
+
+Propuesta simple: enum {"yes","no"} → convertir a bool.
+
+Si el dataset trae conteo o meses: usar int ge=0 y renombrar a internship_count o internship_months.
+
+Employment Status
+
+Tipo: enum
+
+Para salarios tiene sentido restringir (normalmente solo employed tiene salario):
+{"employed_full_time","employed_part_time","self_employed","unemployed","further_study","intern"}
+
+Regla cruzada opcional: si employment_status ∈ {unemployed,further_study} ⇒ no exigir/usar salary (en train filtras o tratas como missing).
+
+Salary (objetivo)
+
+Tipo: float
+
+Rango básico: ge=0
+
+Recomendado: filtrar outliers con IQR/quantiles por país/moneda y convertir a una moneda común (USD/EUR) antes de entrenar.
