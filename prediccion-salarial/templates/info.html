@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Información del Modelo - Predicción Salarial{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-4xl">
+    <h1 class="text-4xl font-bold text-center mb-8" data-i18n="info.title">
+        Cómo Funciona Nuestro Modelo
+    </h1>
+    
+    <div class="bg-white rounded-xl shadow-md p-8 mb-8">
+        <h2 class="text-2xl font-bold mb-4" data-i18n="info.factors.title">
+            Factores que Influyen en la Predicción
+        </h2>
+        
+        <div class="space-y-4">
+            <div class="border-l-4 border-blue-600 pl-4">
+                <h3 class="font-bold text-lg">Formación Académica (35%)</h3>
+                <p class="text-gray-600">Tu nivel de estudios, campo de especialización y ranking universitario</p>
+            </div>
+            
+            <div class="border-l-4 border-green-600 pl-4">
+                <h3 class="font-bold text-lg">Experiencia (25%)</h3>
+                <p class="text-gray-600">Años desde la obtención del título y realización de prácticas</p>
+            </div>
+            
+            <div class="border-l-4 border-purple-600 pl-4">
+                <h3 class="font-bold text-lg">Ubicación Geográfica (20%)</h3>
+                <p class="text-gray-600">País de origen y región donde obtuviste tu formación</p>
+            </div>
+            
+            <div class="border-l-4 border-yellow-600 pl-4">
+                <h3 class="font-bold text-lg">Competencias (15%)</h3>
+                <p class="text-gray-600">Nivel de inglés y nota media obtenida</p>
+            </div>
+            
+            <div class="border-l-4 border-red-600 pl-4">
+                <h3 class="font-bold text-lg">Situación Actual (5%)</h3>
+                <p class="text-gray-600">Si estás empleado, desempleado o estudiando</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-md p-8 mb-8">
+        <h2 class="text-2xl font-bold mb-4" data-i18n="info.methodology.title">
+            Metodología
+        </h2>
+        <p class="text-gray-600 mb-4">
+            Nuestro modelo utiliza técnicas de aprendizaje automático entrenadas con datos de más de 
+            10,000 graduados internacionales. El algoritmo considera múltiples variables y sus 
+            interacciones para proporcionar una estimación precisa.
+        </p>
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+            <p class="text-sm text-blue-800">
+                <strong>Nota:</strong> Las predicciones son estimaciones basadas en tendencias del mercado 
+                y no garantizan salarios específicos. Los resultados reales pueden variar según factores 
+                individuales no contemplados en el modelo.
+            </p>
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="{{ url_for('formulario', form_id='new') }}" 
+           class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+            <span data-i18n="info.start">Comenzar Predicción</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

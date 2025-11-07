@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Formulario - Predicción Salarial{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-3xl">
+    <!-- Progress Bar -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold" data-i18n="form.step">Paso</span>
+            <span class="text-sm text-gray-600">
+                <span id="currentStep">1</span> de 2
+            </span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 50%"></div>
+        </div>
+    </div>
+    
+    <!-- Form Container -->
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <form id="predictionForm" data-form-id="{{ form_id }}">
+            
+            <!-- Step 1: Datos Personales -->
+            <div id="step1" class="step-content">
+                <h2 class="text-2xl font-bold mb-6" data-i18n="form.personal.title">Datos Personales</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.name">
+                            Nombre (Opcional)
+                        </label>
+                        <input type="text" name="nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.age">
+                            Edad *
+                        </label>
+                        <input type="number" name="edad" min="18" max="100" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="text-red-500 text-xs hidden error-msg">Este campo es obligatorio</span>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.country">
+                            País *
+                        </label>
+                        <select name="pais" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecciona...</option>
+                            <option value="Brasil">Brasil</option>
+                            <option value="China">China</option>
+                            <option value="España">España</option>
+                            <option value="Pakistán">Pakistán</option>
+                            <option value="USA">USA</option>
+                            <option value="India">India</option>
+                            <option value="Vietnam">Vietnam</option>
+                            <option value="Nigeria">Nigeria</option>
+                        </select>
+                        <span class="text-red-500 text-xs hidden error-msg">Este campo es obligatorio</span>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.gender">
+                            Género *
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="genero" value="Hombre" required class="mr-2">
+                                <span>Hombre</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="genero" value="Mujer" required class="mr-2">
+                                <span>Mujer</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="genero" value="Otro" required class="mr-2">
+                                <span>Otro</span>
+                            </label>
+                        </div>
+                        <span class="text-red-500 text-xs hidden error-msg">Este campo es obligatorio</span>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-6">
+                    <button type="button" onclick="nextStep()" 
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        <span data-i18n="form.next">Siguiente</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Datos de Formación -->
+            <div id="step2" class="step-content hidden">
+                <h2 class="text-2xl font-bold mb-6" data-i18n="form.education.title">Datos de Formación</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Titulación *</label>
+                        <select name="titulacion" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecciona...</option>
+                            <option value="Grado">Grado</option>
+                            <option value="Master">Master</option>
+                            <option value="PHD">PHD</option>
+                            <option value="FP">FP</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Años desde obtención del título *</label>
+                        <input type="number" name="aniosDesdeObtencion" min="0" max="50" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Campo de estudio *</label>
+                        <select name="campoEstudio" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecciona...</option>
+                            <option value="Artes">Artes</option>
+                            <option value="Ing">Ingeniería</option>
+                            <option value="IT">IT</option>
+                            <option value="Salud">Salud</option>
+                            <option value="S.Sociales">Ciencias Sociales</option>
+                            <option value="Empresa">Empresa</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nivel de inglés *</label>
+                        <select name="nivelIngles" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecciona...</option>
+                            <option value="Básico">Básico</option>
+                            <option value="Intermedio">Intermedio</option>
+                            <option value="Avanzado">Avanzado</option>
+                            <option value="Fluido">Fluido</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ranking Universidad *</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="universidadRanking" value="Alto" required class="mr-2">
+                                <span>Alto</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="universidadRanking" value="Medio" required class="mr-2">
+                                <span>Medio</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="universidadRanking" value="Bajo" required class="mr-2">
+                                <span>Bajo</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Región de estudio *</label>
+                        <select name="regionEstudio" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecciona...</option>
+                            <option value="Australia">Australia</option>
+                            <option value="Europa">Europa</option>
+                            <option value="USA">USA</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nota media (0-10) *</label>
+                        <input type="number" name="notaMedia" min="0" max="10" step="0.1" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="practicas" class="mr-2">
+                            <span class="text-sm font-medium text-gray-700">Realicé prácticas</span>
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Situación laboral *</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="situacionLaboral" value="Estudiando" required class="mr-2">
+                                <span>Estudiando</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="situacionLaboral" value="Desempleado" required class="mr-2">
+                                <span>Desempleado</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="situacionLaboral" value="Empleado" required class="mr-2">
+                                <span>Empleado</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button type="button" onclick="previousStep()" 
+                            class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
+                        <span data-i18n="form.back">Atrás</span>
+                    </button>
+                    <button type="button" onclick="submitForm()" 
+                            class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                        <span data-i18n="form.submit">Finalizar</span>
+                    </button>
+                </div>
+            </div>
+            
+        </form>
+    </div>
+    
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-xl shadow-xl text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-lg font-semibold" data-i18n="form.processing">Procesando tu predicción...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const formId = "{{ form_id }}";
+</script>
+{% endblock %}

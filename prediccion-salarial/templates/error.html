@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Predicción Salarial{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <div class="max-w-2xl mx-auto text-center">
+        <!-- Error Icon -->
+        <div class="text-8xl mb-6">
+            {% if error_code == '404' %}
+                🔍
+            {% elif error_code == '500' %}
+                ⚠️
+            {% elif error_code == 'timeout' %}
+                ⏱️
+            {% elif error_code == 'offline' %}
+                📡
+            {% else %}
+                ❌
+            {% endif %}
+        </div>
+        
+        <!-- Error Title -->
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">
+            {% if error_code == '404' %}
+                Página no encontrada
+            {% elif error_code == '500' %}
+                Error del servidor
+            {% elif error_code == 'timeout' %}
+                Tiempo de espera agotado
+            {% elif error_code == 'offline' %}
+                Sin conexión
+            {% else %}
+                Algo salió mal
+            {% endif %}
+        </h1>
+        
+        <!-- Error Message -->
+        <p class="text-xl text-gray-600 mb-8">
+            {% if error_code == '404' %}
+                La página que buscas no existe o ha sido movida.
+            {% elif error_code == '500' %}
+                Hubo un problema con nuestro servidor. Por favor, intenta de nuevo más tarde.
+            {% elif error_code == 'timeout' %}
+                La solicitud tardó demasiado tiempo. Por favor, verifica tu conexión e intenta de nuevo.
+            {% elif error_code == 'offline' %}
+                Parece que no tienes conexión a internet. Verifica tu conexión e intenta de nuevo.
+            {% else %}
+                {{ error_message }}
+            {% endif %}
+        </p>
+        
+        <!-- Error Code -->
+        <div class="bg-gray-100 rounded-lg px-4 py-2 inline-block mb-8">
+            <span class="text-sm text-gray-500">Código de error:</span>
+            <span class="font-mono font-bold text-gray-700">{{ error_code }}</span>
+        </div>
+        
+        <!-- Action Button -->
+        <div>
+            <a href="{{ url_for('inicio') }}" 
+               class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg inline-block">
+                Volver al Inicio
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
