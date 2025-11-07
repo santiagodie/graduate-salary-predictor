@@ -1,9 +1,9 @@
-#define las reglas de lo que tu API considera un “payload válido”.
+# define las reglas de lo que tu API considera un “payload válido”.
 
-# predictive_app/schema.py
-from pydantic import BaseModel, Field, field_validator, ValidationError, ConfigDict
-from typing import Optional, Literal
-
+from pydantic import BaseModel, Field, field_validator, ConfigDict
+from typing import Optional
+import unicodedata
+import re
 
 # -----------------------------
 # Conjunto de dominios (canónicos)
@@ -40,6 +40,37 @@ RANKING_UNI = {"alto", "medio", "bajo"}
 
 REGIONES_ESTUDIO = {"australia", "europa", "usa"}
 
+
+# -----------------------------
+# Helpers
+# -----------------------------
+def _norm(s: Optional[str]) -> Optional[str]:
+    """Normaliza texto: strip, lowercase, eliminar tildes y puntuación redundante."""
+    if s is None:
+        return None
+    s2 = str(s).strip().lower()
+    s2 = unicodedata.normalize("NFKD", s2).encode("ascii", "ignore").decode("ascii")
+    s2 = re.sub(r"[^\w\s]", " ", s2)  # reemplaza puntuación por espacio
+    s2 = re.sub(r"\s+", " ", s2).strip()
+    return s2
+
+
+def _build_canon_map(values):
+    """Devuelve dict normalizado -> canonical (original)"""
+    return { _norm(v): v for v in values }
+
+
+# Precompute mapas canónicos normalizados
+_CANON_PAISES = _build_canon_map(PAISES)
+_CANON_GENEROS = _build_canon_map(GENEROS)
+_CANON_TITULACIONES = _build_canon_map(TITULACIONES)
+_CANON_CAMPOS = _build_canon_map(CAMPOS_ESTUDIO_CANON.keys())
+_CANON_NIVELES = _build_canon_map(NIVELES_INGLES_CANON.keys())
+_CANON_SITUACIONES = _build_canon_map(SITUACIONES_LABORALES)
+_CANON_RANKING = _build_canon_map(RANKING_UNI)
+_CANON_REGIONES = _build_canon_map(REGIONES_ESTUDIO)
+
+
 # -----------------------------
 # Modelo de petición
 # -----------------------------
@@ -74,7 +105,6 @@ class PredictRequest(BaseModel):
 
     # nombre opcional: limpiar espacios
     @field_validator("nombre")
-    @classmethod
     def _clean_nombre(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
             return v
@@ -83,101 +113,95 @@ class PredictRequest(BaseModel):
 
     # país
     @field_validator("pais")
-    @classmethod
     def _validate_pais(cls, v: str) -> str:
-        v1 = v.strip().lower()
+        v_norm = _norm(v)
         # normalizar algunos alias frecuentes
         alias = {
             "pakistan": "pakistán",
             "eeuu": "usa",
             "estados unidos": "usa"
         }
-        v1 = alias.get(v1, v1)
-        if v1 not in PAISES:
-            raise ValueError(f"pais debe ser uno de: {sorted(PAISES)}")
-        return v1
+        if v_norm in alias:
+            target = alias[v_norm]
+            return target
+        if v_norm in _CANON_PAISES:
+            return _CANON_PAISES[v_norm]
+        raise ValueError(f"pais debe ser uno de: {sorted(PAISES)}")
 
     # género
     @field_validator("genero")
-    @classmethod
     def _validate_genero(cls, v: str) -> str:
-        v1 = v.strip().lower()
-        if v1 not in GENEROS:
-            raise ValueError(f"genero debe ser uno de: {sorted(GENEROS)}")
-        return v1
+        v_norm = _norm(v)
+        if v_norm in _CANON_GENEROS:
+            return _CANON_GENEROS[v_norm]
+        raise ValueError(f"genero debe ser uno de: {sorted(GENEROS)}")
 
     # titulación
     @field_validator("titulacion")
-    @classmethod
     def _validate_titulacion(cls, v: str) -> str:
-        v1 = v.strip().lower()
+        v_norm = _norm(v)
         # normalización de variantes
-        if v1 in {"máster", "master"}:
-            v1 = "master"
-        if v1 in {"phd", "ph.d.", "doctorado"}:
-            v1 = "phd"
-        if v1 not in TITULACIONES:
-            raise ValueError(f"titulacion debe ser uno de: {sorted(TITULACIONES)}")
-        return v1
+        if v_norm in {"master", "mastere", "mastero", "maestria", "mastre"}:
+            return "master"
+        if v_norm in {"phd", "ph d", "ph.d", "doctorado"}:
+            return "phd"
+        if v_norm in _CANON_TITULACIONES:
+            return _CANON_TITULACIONES[v_norm]
+        raise ValueError(f"titulacion debe ser uno de: {sorted(TITULACIONES)}")
 
     # campo de estudio
     @field_validator("campo_estudio")
-    @classmethod
     def _validate_campo_estudio(cls, v: str) -> str:
-        v0 = v.strip()
-        v1 = v0.lower()
-        # normalizar abreviaturas y puntos
-        if v1 == "s. sociales":
-            v1 = "s.sociales"
-        canon = CAMPOS_ESTUDIO_CANON.get(v1)
-        if not canon:
-            raise ValueError(
-                "campo_estudio no válido. Usa uno de: "
-                f"{sorted(set(CAMPOS_ESTUDIO_CANON.values()))} (admite 'Ing', 'S.Sociales', etc.)"
-            )
-        return canon
+        v_norm = _norm(v)
+        # aceptar variantes como "s social", "s.sociales", etc.
+        if v_norm in {"s social", "s social es", "s sociales", "s social es"}:
+            return "s_sociales"
+        if v_norm in _CANON_CAMPOS:
+            canon = _CANON_CAMPOS[v_norm]
+            # devolver la forma canon (en el mapa CAMPOS_ESTUDIO_CANON)
+            return CAMPOS_ESTUDIO_CANON.get(canon, canon)
+        raise ValueError(
+            "campo_estudio no válido. Usa uno de: "
+            f"{sorted(set(CAMPOS_ESTUDIO_CANON.values()))} (admite 'Ing', 'S.Sociales', etc.)"
+        )
 
     # nivel de inglés
     @field_validator("nivel_ingles")
-    @classmethod
     def _validate_nivel_ingles(cls, v: str) -> str:
-        v1 = v.strip().lower()
-        canon = NIVELES_INGLES_CANON.get(v1)
-        if not canon:
-            raise ValueError(f"nivel_ingles debe ser uno de: {sorted(set(NIVELES_INGLES_CANON.values()))}")
-        return canon
+        v_norm = _norm(v)
+        if v_norm in _CANON_NIVELES:
+            return NIVELES_INGLES_CANON.get(_CANON_NIVELES[v_norm], _CANON_NIVELES[v_norm])
+        raise ValueError(f"nivel_ingles debe ser uno de: {sorted(set(NIVELES_INGLES_CANON.values()))}")
 
     # situación laboral
     @field_validator("situacion_laboral")
-    @classmethod
     def _validate_situacion_laboral(cls, v: str) -> str:
-        v1 = v.strip().lower()
-        if v1 not in SITUACIONES_LABORALES:
-            raise ValueError(f"situacion_laboral debe ser uno de: {sorted(SITUACIONES_LABORALES)}")
-        return v1
+        v_norm = _norm(v)
+        if v_norm in _CANON_SITUACIONES:
+            return _CANON_SITUACIONES[v_norm]
+        raise ValueError(f"situacion_laboral debe ser uno de: {sorted(SITUACIONES_LABORALES)}")
 
     # ranking de universidad
     @field_validator("universidad_ranking")
-    @classmethod
     def _validate_universidad_ranking(cls, v: str) -> str:
-        v1 = v.strip().lower()
-        if v1 not in RANKING_UNI:
-            raise ValueError(f"universidad_ranking debe ser uno de: {sorted(RANKING_UNI)}")
-        return v1
+        v_norm = _norm(v)
+        if v_norm in _CANON_RANKING:
+            return _CANON_RANKING[v_norm]
+        raise ValueError(f"universidad_ranking debe ser uno de: {sorted(RANKING_UNI)}")
 
     # región de estudio
     @field_validator("region_estudio")
-    @classmethod
     def _validate_region_estudio(cls, v: str) -> str:
-        v1 = v.strip().lower()
+        v_norm = _norm(v)
         alias = {
             "eeuu": "usa",
             "estados unidos": "usa",
         }
-        v1 = alias.get(v1, v1)
-        if v1 not in REGIONES_ESTUDIO:
-            raise ValueError(f"region_estudio debe ser uno de: {sorted(REGIONES_ESTUDIO)}")
-        return v1
+        if v_norm in alias:
+            return alias[v_norm]
+        if v_norm in _CANON_REGIONES:
+            return _CANON_REGIONES[v_norm]
+        raise ValueError(f"region_estudio debe ser uno de: {sorted(REGIONES_ESTUDIO)}")
 
 
 # -----------------------------
