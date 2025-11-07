@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Predicción Salarial{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <!-- Hero Section -->
+    <div class="text-center py-20 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl mb-12">
+        <h1 class="text-5xl md:text-6xl font-bold text-gray-800 mb-6" data-i18n="hero.title">
+            Predice tu Salario como Graduado
+        </h1>
+        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto" data-i18n="hero.subtitle">
+            Descubre cuánto podrías ganar basándonos en tu formación, experiencia y ubicación
+        </p>
+        
+        <div class="flex gap-4 justify-center">
+            <a href="{{ url_for('formulario', form_id='new') }}" 
+               class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+                <span data-i18n="hero.start">Comenzar Predicción</span>
+            </a>
+            <a href="{{ url_for('info') }}" 
+               class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold border-2 border-blue-600 hover:bg-blue-50 transition-colors">
+                <span data-i18n="hero.more">Más Información</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="grid md:grid-cols-3 gap-8 mb-12">
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div class="text-4xl mb-4">📊</div>
+            <h3 class="text-xl font-bold mb-2" data-i18n="features.analysis.title">Análisis Inteligente</h3>
+            <p class="text-gray-600" data-i18n="features.analysis.desc">
+                Algoritmo basado en datos reales del mercado laboral internacional
+            </p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div class="text-4xl mb-4">🌍</div>
+            <h3 class="text-xl font-bold mb-2" data-i18n="features.global.title">Perspectiva Global</h3>
+            <p class="text-gray-600" data-i18n="features.global.desc">
+                Compara tu perfil con graduados de todo el mundo
+            </p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+            <div class="text-4xl mb-4">⚡</div>
+            <h3 class="text-xl font-bold mb-2" data-i18n="features.instant.title">Resultados Instantáneos</h3>
+            <p class="text-gray-600" data-i18n="features.instant.desc">
+                Obtén tu predicción salarial en menos de 2 minutos
+            </p>
+        </div>
+    </div>
+    
+    <!-- Stats Section -->
+    <div class="bg-white rounded-xl shadow-md p-8 text-center">
+        <div class="grid grid-cols-3 gap-8">
+            <div>
+                <div class="text-3xl font-bold text-blue-600">5,000+</div>
+                <div class="text-gray-600" data-i18n="stats.predictions">Predicciones Realizadas</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-blue-600">8</div>
+                <div class="text-gray-600" data-i18n="stats.countries">Países Analizados</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-blue-600">85%</div>
+                <div class="text-gray-600" data-i18n="stats.accuracy">Precisión Media</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

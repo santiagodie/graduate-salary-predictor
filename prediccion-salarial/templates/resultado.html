@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Resultado - Predicción Salarial{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-6xl">
+    <!-- Main Result -->
+    <div class="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-xl shadow-xl p-8 mb-8 text-center">
+        <h1 class="text-2xl mb-4" data-i18n="result.title">Tu Salario Estimado</h1>
+        <div class="text-6xl font-bold mb-2">
+            $<span id="salaryAmount">{{ prediction.salary }}</span> USD
+        </div>
+        <p class="text-lg opacity-90" data-i18n="result.annual">Anual</p>
+        
+        <div class="mt-6 flex justify-center gap-4">
+            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                <span class="text-sm opacity-90">Confianza</span>
+                <div class="text-xl font-bold">{{ prediction.statistics.confidence }}%</div>
+            </div>
+            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                <span class="text-sm opacity-90">Rango</span>
+                <div class="text-xl font-bold">${{ prediction.statistics.salary_range.min }} - ${{ prediction.statistics.salary_range.max }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <h3 class="font-semibold mb-3">Filtrar comparaciones por:</h3>
+        <div class="flex flex-wrap gap-2">
+            <select id="filterCountry" class="border rounded px-3 py-1 text-sm">
+                <option value="">Todos los países</option>
+                <option value="Brasil">Brasil</option>
+                <option value="China">China</option>
+                <option value="España">España</option>
+                <option value="Pakistán">Pakistán</option>
+                <option value="USA">USA</option>
+                <option value="India">India</option>
+                <option value="Vietnam">Vietnam</option>
+                <option value="Nigeria">Nigeria</option>
+            </select>
+            
+            <select id="filterEducation" class="border rounded px-3 py-1 text-sm">
+                <option value="">Toda formación</option>
+                <option value="Grado">Grado</option>
+                <option value="Master">Master</option>
+                <option value="PHD">PHD</option>
+                <option value="FP">FP</option>
+            </select>
+            
+            <select id="filterField" class="border rounded px-3 py-1 text-sm">
+                <option value="">Todos los campos</option>
+                <option value="Artes">Artes</option>
+                <option value="Ing">Ingeniería</option>
+                <option value="IT">IT</option>
+                <option value="Salud">Salud</option>
+                <option value="S.Sociales">Ciencias Sociales</option>
+                <option value="Empresa">Empresa</option>
+            </select>
+            
+            <button onclick="applyFilters()" class="bg-blue-600 text-white px-4 py-1 rounded text-sm hover:bg-blue-700">
+                Aplicar Filtros
+            </button>
+        </div>
+    </div>
+    
+    <!-- Comparisons Grid -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Age Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3">Edad</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Tu edad:</span>
+                <span class="font-semibold">{{ prediction.comparisons.edad.user }} años</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Media:</span>
+                <span class="font-semibold">{{ prediction.comparisons.edad.average }} años</span>
+            </div>
+            <canvas id="ageChart" width="200" height="150"></canvas>
+        </div>
+        
+        <!-- Country Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3">País</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Tu país:</span>
+                <span class="font-semibold">{{ prediction.comparisons.pais.user }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Salario medio en {{ prediction.comparisons.pais.user }}:</span>
+                <span class="font-semibold">${{ prediction.comparisons.pais.average_salary }}</span>
+            </div>
+            <canvas id="countryChart" width="200" height="150"></canvas>
+        </div>
+        
+        <!-- Education Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3">Formación</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Tu nivel:</span>
+                <span class="font-semibold">{{ prediction.comparisons.formacion.user }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Salario medio {{ prediction.comparisons.formacion.user }}:</span>
+                <span class="font-semibold">${{ prediction.comparisons.formacion.average_salary }}</span>
+            </div>
+            <canvas id="educationChart" width="200" height="150"></canvas>
+        </div>
+        
+        <!-- Field of Study Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3">Campo de Estudio</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Tu campo:</span>
+                <span class="font-semibold">{{ prediction.comparisons.campoEstudio.user }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Salario medio en {{ prediction.comparisons.campoEstudio.user }}:</span>
+                <span class="font-semibold">${{ prediction.comparisons.campoEstudio.average_salary }}</span>
+            </div>
+            <canvas id="fieldChart" width="200" height="150"></canvas>
+        </div>
+        
+        <!-- Years Experience -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3">Años de Experiencia</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Tus años:</span>
+                <span class="font-semibold">{{ prediction.comparisons.aniosExperiencia.user }} años</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Media:</span>
+                <span class="font-semibold">{{ prediction.comparisons.aniosExperiencia.average }} años</span>
+            </div>
+            <canvas id="experienceChart" width="200" height="150"></canvas>
+        </div>
+        
+        <!-- Grade Average -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3">Nota Media</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Tu nota:</span>
+                <span class="font-semibold">{{ prediction.comparisons.notaMedia.user }}/10</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600">Media:</span>
+                <span class="font-semibold">{{ prediction.comparisons.notaMedia.average }}/10</span>
+            </div>
+            <canvas id="gradeChart" width="200" height="150"></canvas>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex justify-center gap-4">
+        <a href="{{ url_for('formulario', form_id='new') }}" 
+           class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+            <span data-i18n="result.new">Nueva Predicción</span>
+        </a>
+        <a href="{{ url_for('inicio') }}" 
+           class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+            <span data-i18n="result.home">Volver al Inicio</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Datos de la predicción
+    const prediction = {{ prediction | tojson }};
+    
+    // Animar el contador del salario
+    let counter = 0;
+    const finalSalary = prediction.salary;
+    const increment = finalSalary / 100;
+    const timer = setInterval(() => {
+        counter += increment;
+        if (counter >= finalSalary) {
+            counter = finalSalary;
+            clearInterval(timer);
+        }
+        document.getElementById('salaryAmount').textContent = Math.floor(counter).toLocaleString();
+    }, 20);
+    
+    // Crear gráficos
+    window.addEventListener('load', () => {
+        createComparisonCharts();
+    });
+    
+    function createComparisonCharts() {
+        // Gráfico de edad
+        new Chart(document.getElementById('ageChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Tu edad', 'Media'],
+                datasets: [{
+                    data: [prediction.comparisons.edad.user, prediction.comparisons.edad.average],
+                    backgroundColor: ['#3B82F6', '#9CA3AF']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+        
+        // Gráfico de país (comparación de salarios)
+        new Chart(document.getElementById('countryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Tu salario', 'Media país'],
+                datasets: [{
+                    data: [prediction.salary, prediction.comparisons.pais.average_salary],
+                    backgroundColor: ['#10B981', '#F59E0B']
+                }]
+            },
+            options: {
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+        
+        // Gráfico de educación
+        new Chart(document.getElementById('educationChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Tu salario', 'Media ' + prediction.comparisons.formacion.user],
+                datasets: [{
+                    data: [prediction.salary, prediction.comparisons.formacion.average_salary],
+                    backgroundColor: ['#8B5CF6', '#EC4899']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+        
+        // Gráfico de campo de estudio
+        new Chart(document.getElementById('fieldChart'), {
+            type: 'radar',
+            data: {
+                labels: ['Salario', 'Media Campo'],
+                datasets: [{
+                    label: 'Comparación',
+                    data: [prediction.salary, prediction.comparisons.campoEstudio.average_salary],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: '#3B82F6'
+                }]
+            },
+            options: {
+                scales: { r: { beginAtZero: true } }
+            }
+        });
+        
+        // Gráfico de experiencia
+        new Chart(document.getElementById('experienceChart'), {
+            type: 'line',
+            data: {
+                labels: ['0 años', 'Tu experiencia', '10 años'],
+                datasets: [{
+                    label: 'Progresión',
+                    data: [30000, prediction.salary, prediction.salary + 15000],
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                }]
+            }
+        });
+        
+        // Gráfico de nota media
+        new Chart(document.getElementById('gradeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Tu nota', 'Media'],
+                datasets: [{
+                    data: [prediction.comparisons.notaMedia.user, prediction.comparisons.notaMedia.average],
+                    backgroundColor: ['#F59E0B', '#6B7280']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, max: 10 } }
+            }
+        });
+    }
+    
+    // Aplicar filtros
+    function applyFilters() {
+        const filters = {
+            pais: document.getElementById('filterCountry').value,
+            formacion: document.getElementById('filterEducation').value,
+            campoEstudio: document.getElementById('filterField').value
+        };
+        
+        // Hacer petición para obtener estadísticas filtradas
+        fetch('/api/statistics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(filters)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar gráficos con nuevos datos
+            console.log('Estadísticas filtradas:', data);
+            // Aquí actualizarías los gráficos con los nuevos datos
+        });
+    }
+</script>
+{% endblock %}
