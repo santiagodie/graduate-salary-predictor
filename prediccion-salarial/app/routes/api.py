@@ -4,6 +4,7 @@ api.py - Endpoints API REST
 
 import time
 import random
+import uuid
 from datetime import datetime
 from typing import Dict
 import pandas as pd
@@ -26,6 +27,9 @@ from app.utils.helpers import (
 # Crear blueprint para la API
 api = Blueprint('api', __name__, url_prefix='/api')
 
+# ID único de sesión del servidor (se regenera cada vez que se lanza el servidor)
+SERVER_SESSION_ID = str(uuid.uuid4())
+
 # Base de datos mock de predicciones
 predictions_db: Dict = {}
 
@@ -37,7 +41,8 @@ def health():
     body = {
         "status": status,
         "timestamp": datetime.now().isoformat(),
-        "version": load_meta().get("version", "unknown")
+        "version": load_meta().get("version", "unknown"),
+        "server_session_id": SERVER_SESSION_ID
     }
     if not _PREDICTOR_AVAILABLE:
         body["note"] = "Predictor no cargado, usando modo mock"

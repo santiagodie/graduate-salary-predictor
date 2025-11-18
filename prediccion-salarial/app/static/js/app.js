@@ -842,6 +842,72 @@ if (document.getElementById('predictionForm')) {
 
 // Clear errors on input
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar si el servidor se reinició
+    fetch('/api/health')
+        .then(response => response.json())
+        .then(data => {
+            const serverSessionId = data.server_session_id;
+            const storedSessionId = localStorage.getItem('serverSessionId');
+
+            if (storedSessionId !== serverSessionId) {
+                // El servidor se reinició, limpiar datos y resetear valores por defecto
+                console.log('[INFO] Servidor reiniciado, limpiando datos locales...');
+
+                // Limpiar historial de predicciones
+                localStorage.removeItem('predictionHistory');
+
+                // Resetear divisa a USD
+                localStorage.setItem('selectedCurrency', 'USD');
+                currentCurrency = 'USD';
+
+                // Resetear idioma a español
+                localStorage.setItem('selectedLanguage', 'es');
+                currentLang = 'es';
+
+                // Guardar nuevo ID de sesión
+                localStorage.setItem('serverSessionId', serverSessionId);
+
+                // Aplicar configuración
+                const languageSelector = document.getElementById('languageSelector');
+                if (languageSelector) {
+                    languageSelector.value = 'es';
+                    changeLanguage('es');
+                }
+
+                const globalCurrencySelector = document.getElementById('currencySelector');
+                if (globalCurrencySelector) {
+                    globalCurrencySelector.value = 'USD';
+                    if (typeof updateChartsWithCurrency === 'function') {
+                        updateChartsWithCurrency('USD');
+                    }
+                }
+            } else {
+                // El servidor no se reinició, recuperar valores guardados
+                const savedCurrency = localStorage.getItem('selectedCurrency') || 'USD';
+                const savedLang = localStorage.getItem('selectedLanguage') || 'es';
+
+                currentCurrency = savedCurrency;
+                currentLang = savedLang;
+
+                const globalCurrencySelector = document.getElementById('currencySelector');
+                if (globalCurrencySelector) {
+                    globalCurrencySelector.value = savedCurrency;
+                    if (typeof updateChartsWithCurrency === 'function') {
+                        updateChartsWithCurrency(savedCurrency);
+                    }
+                }
+
+                const languageSelector = document.getElementById('languageSelector');
+                if (languageSelector) {
+                    languageSelector.value = savedLang;
+                    changeLanguage(savedLang);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('[ERROR] No se pudo verificar sesión del servidor:', error);
+        });
+
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(input => {
         input.addEventListener('input', function() {
@@ -864,12 +930,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Language Selector
     const languageSelector = document.getElementById('languageSelector');
     if (languageSelector) {
-        // Recuperar idioma guardado o usar 'es' por defecto
-        const savedLang = localStorage.getItem('selectedLanguage') || 'es';
-        currentLang = savedLang;
-        languageSelector.value = savedLang;
-        changeLanguage(savedLang);
-
         languageSelector.addEventListener('change', function() {
             const selectedLang = this.value;
             localStorage.setItem('selectedLanguage', selectedLang);
@@ -886,16 +946,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Currency Selector (Global - en base.html)
     const globalCurrencySelector = document.getElementById('currencySelector');
     if (globalCurrencySelector) {
-        // Recuperar moneda guardada o usar 'USD' por defecto
-        const savedCurrency = localStorage.getItem('selectedCurrency') || 'USD';
-        currentCurrency = savedCurrency;
-        globalCurrencySelector.value = savedCurrency;
-
-        // Aplicar moneda guardada si estamos en la página de resultados
-        if (typeof updateChartsWithCurrency === 'function') {
-            updateChartsWithCurrency(savedCurrency);
-        }
-
         globalCurrencySelector.addEventListener('change', function() {
             const selectedCurrency = this.value;
             localStorage.setItem('selectedCurrency', selectedCurrency);
