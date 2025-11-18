@@ -1,1 +1,6 @@
 Flask==3.0.0
+flask-cors
+pydantic
+requests
+pandas
+scikit-learn

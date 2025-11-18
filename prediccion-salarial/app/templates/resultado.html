@@ -1,0 +1,722 @@
+{% extends "base.html" %}
+
+{% block title %}Resultado - Predicción Salarial{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-6xl">
+    <!-- Main Result -->
+    <div class="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-xl shadow-xl p-8 mb-8 text-center">
+        <h1 class="text-2xl mb-4" data-i18n="result.title">Tu Salario Estimado</h1>
+        <div class="text-6xl font-bold mb-2">
+            <span id="salaryAmount" data-salary="{{ prediction.salary }}"></span>
+        </div>
+        <p class="text-lg opacity-90" data-i18n="result.annual">Anual</p>
+
+        <div class="mt-6 flex justify-center gap-4">
+            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                <span class="text-sm opacity-90">Confianza</span>
+                <div class="text-xl font-bold">{{ prediction.statistics.confidence }}%</div>
+            </div>
+            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                <span class="text-sm opacity-90">Rango</span>
+                <div class="text-xl font-bold">
+                    <span id="salaryRangeMin" data-salary="{{ prediction.statistics.salary_range.min }}"></span> - <span id="salaryRangeMax" data-salary="{{ prediction.statistics.salary_range.max }}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <h3 class="font-semibold mb-3" data-i18n="result.filters">Filtrar comparaciones por:</h3>
+        <div class="flex flex-wrap gap-2">
+            <select id="filterCountry" class="border rounded px-3 py-1 text-sm">
+                <option value="" data-i18n="result.filter.allCountries">Todos los países</option>
+                <option value="Brasil" data-i18n="country.brasil">🇧🇷 Brasil</option>
+                <option value="China" data-i18n="country.china">🇨🇳 China</option>
+                <option value="España" data-i18n="country.espana">🇪🇸 España</option>
+                <option value="Pakistán" data-i18n="country.pakistan">🇵🇰 Pakistán</option>
+                <option value="USA" data-i18n="country.usa">🇺🇸 USA</option>
+                <option value="India" data-i18n="country.india">🇮🇳 India</option>
+                <option value="Vietnam" data-i18n="country.vietnam">🇻🇳 Vietnam</option>
+                <option value="Nigeria" data-i18n="country.nigeria">🇳🇬 Nigeria</option>
+            </select>
+
+            <select id="filterGender" class="border rounded px-3 py-1 text-sm">
+                <option value="" data-i18n="result.filter.allGenders">Todos los géneros</option>
+                <option value="Hombre" data-i18n="form.personal.gender.male">Hombre</option>
+                <option value="Mujer" data-i18n="form.personal.gender.female">Mujer</option>
+                <option value="Otro" data-i18n="form.personal.gender.other">Otro</option>
+            </select>
+
+            <select id="filterEducation" class="border rounded px-3 py-1 text-sm">
+                <option value="" data-i18n="result.filter.allEducation">Toda formación</option>
+                <option value="Grado" data-i18n="degree.bachelor">Grado</option>
+                <option value="Master" data-i18n="degree.master">Master</option>
+                <option value="PHD" data-i18n="degree.phd">PHD</option>
+                <option value="FP" data-i18n="degree.fp">FP</option>
+            </select>
+
+            <select id="filterField" class="border rounded px-3 py-1 text-sm">
+                <option value="" data-i18n="result.filter.allFields">Todos los campos</option>
+                <option value="Artes" data-i18n="field.arts">Artes</option>
+                <option value="Ing" data-i18n="field.engineering">Ingeniería</option>
+                <option value="IT" data-i18n="field.it">IT</option>
+                <option value="Salud" data-i18n="field.health">Salud</option>
+                <option value="S.Sociales" data-i18n="field.social">Ciencias Sociales</option>
+                <option value="Empresa" data-i18n="field.business">Empresa</option>
+            </select>
+
+            <button onclick="applyFilters()" class="bg-blue-600 text-white px-4 py-1 rounded text-sm hover:bg-blue-700">
+                <span data-i18n="result.filter.apply">Aplicar Filtros</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Comparisons Grid -->
+    <div id="comparisonsGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 transition-opacity duration-300">
+        <!-- Age Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3" data-i18n="chart.age.title">Edad</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.age.yours">Tu edad:</span>
+                <span class="font-semibold">{{ prediction.comparisons.edad.user }} años</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.age.average">Media (con filtros aplicados):</span>
+                <span class="font-semibold" id="ageAvgText">{{ prediction.comparisons.edad.average }} años</span>
+            </div>
+            <canvas id="ageChart" width="200" height="150"></canvas>
+        </div>
+
+        <!-- Country Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3" data-i18n="chart.country.title">País</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.country.yours">Tu país:</span>
+                <span class="font-semibold">{{ prediction.comparisons.pais.user }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600"><span data-i18n="chart.country.average">Salario medio en</span> {{ prediction.comparisons.pais.user }}:</span>
+                <span class="font-semibold" id="countryAvgText"><span data-i18n="loading.calculating">Cargando...</span></span>
+            </div>
+            <canvas id="countryChart" width="200" height="150"></canvas>
+        </div>
+
+        <!-- Education Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3" data-i18n="chart.education.title">Formación</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.education.yours">Tu nivel:</span>
+                <span class="font-semibold">{{ prediction.comparisons.formacion.user }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600"><span data-i18n="chart.education.average">Salario medio</span> {{ prediction.comparisons.formacion.user }}:</span>
+                <span class="font-semibold" id="educationAvgText"><span data-i18n="loading.calculating">Cargando...</span></span>
+            </div>
+            <canvas id="educationChart" width="200" height="150"></canvas>
+        </div>
+
+        <!-- Field of Study Comparison -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3" data-i18n="chart.field.title">Campo de Estudio</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.field.yours">Tu campo:</span>
+                <span class="font-semibold">{{ prediction.comparisons.campoEstudio.user }}</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.field.comparison">Comparación por género (con filtros):</span>
+                <div class="text-xs text-gray-500 mt-1">
+                    <span class="inline-block w-3 h-3 bg-blue-500 mr-1"></span><span data-i18n="chart.field.male">Hombre</span>
+                    <span class="inline-block w-3 h-3 bg-pink-500 mr-1 ml-2"></span><span data-i18n="chart.field.female">Mujer</span>
+                </div>
+            </div>
+            <canvas id="fieldChart" width="200" height="150"></canvas>
+        </div>
+
+        <!-- Grade Average -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="font-bold mb-3" data-i18n="chart.grade.title">Nota Media</h3>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.grade.yours">Tu nota:</span>
+                <span class="font-semibold">{{ prediction.comparisons.notaMedia.user }}/10</span>
+            </div>
+            <div class="mb-3">
+                <span class="text-sm text-gray-600" data-i18n="chart.grade.average">Media (con filtros aplicados):</span>
+                <span class="font-semibold" id="gradeAvgText">{{ prediction.comparisons.notaMedia.average }}/10</span>
+            </div>
+            <canvas id="gradeChart" width="200" height="150"></canvas>
+        </div>
+    </div>
+
+    <!-- Country Comparison Chart (Full Width) -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-bold mb-4" data-i18n="chart.countries.title">Comparación de Salarios por País</h2>
+        <p class="text-sm text-gray-600 mb-4" data-i18n="chart.countries.subtitle">Salarios promedio calculados con el perfil actual + filtros aplicados</p>
+        <div style="height: 400px;">
+            <canvas id="countriesComparisonChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-center gap-4">
+        <a href="{{ url_for('views.formulario', form_id='new') }}"
+           class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+            <span data-i18n="result.new">Nueva Predicción</span>
+        </a>
+        <a href="{{ url_for('views.inicio') }}"
+           class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+            <span data-i18n="result.home">Volver al Inicio</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Datos de la predicción
+    const prediction = {{ prediction | tojson }};
+
+    // Referencias globales a los gráficos
+    let charts = {
+        age: null,
+        country: null,
+        education: null,
+        field: null,
+        grade: null,
+        countriesComparison: null
+    };
+
+    // Función para formatear dinero
+    function formatMoney(value) {
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value);
+    }
+
+    // Variable global para almacenar la moneda actual
+    // Cargar desde localStorage inmediatamente, antes de que se ejecute cualquier animación
+    let currentDisplayCurrency = localStorage.getItem('selectedCurrency') || 'USD';
+
+    // Datos originales en USD para poder convertir correctamente
+    const originalDataUSD = {
+        salary: prediction.salary,
+        salaryRangeMin: prediction.statistics.salary_range.min,
+        salaryRangeMax: prediction.statistics.salary_range.max,
+        countryAvg: null,
+        educationAvg: null,
+        fieldAvg: null,
+        maleSalary: null,
+        femaleSalary: null,
+        countriesData: null
+    };
+
+    // Función para convertir un valor de USD a la moneda seleccionada
+    function convertToDisplayCurrency(valueUSD, currency) {
+        // Usar la función del app.js
+        if (typeof convertCurrency === 'function') {
+            return convertCurrency(valueUSD, currency);
+        }
+        // Fallback si no está disponible
+        const rates = { USD: 1.0, EUR: 0.92, GBP: 0.79 };
+        return valueUSD * (rates[currency] || 1.0);
+    }
+
+    // Función para obtener el símbolo de moneda
+    function getCurrencySymbol(currency) {
+        const symbols = { USD: '$', EUR: '€', GBP: '£' };
+        return symbols[currency] || '$';
+    }
+
+    // Función para actualizar los gráficos con la moneda seleccionada
+    function updateChartsWithCurrency(currency) {
+        currentDisplayCurrency = currency;
+        const symbol = getCurrencySymbol(currency);
+
+        // Actualizar salario principal
+        const mainSalary = convertToDisplayCurrency(originalDataUSD.salary, currency);
+        document.getElementById('salaryAmount').textContent = symbol + formatMoney(mainSalary);
+
+        // Actualizar rango
+        const rangeMin = convertToDisplayCurrency(originalDataUSD.salaryRangeMin, currency);
+        const rangeMax = convertToDisplayCurrency(originalDataUSD.salaryRangeMax, currency);
+        document.getElementById('salaryRangeMin').textContent = symbol + formatMoney(rangeMin);
+        document.getElementById('salaryRangeMax').textContent = symbol + formatMoney(rangeMax);
+
+        // Actualizar textos de promedios si existen
+        if (originalDataUSD.countryAvg) {
+            const countryAvg = convertToDisplayCurrency(originalDataUSD.countryAvg, currency);
+            const countryAvgElement = document.getElementById('countryAvgText');
+            if (countryAvgElement) {
+                countryAvgElement.textContent = symbol + formatMoney(countryAvg);
+            }
+        }
+
+        if (originalDataUSD.educationAvg) {
+            const educationAvg = convertToDisplayCurrency(originalDataUSD.educationAvg, currency);
+            const educationAvgElement = document.getElementById('educationAvgText');
+            if (educationAvgElement) {
+                educationAvgElement.textContent = symbol + formatMoney(educationAvg);
+            }
+        }
+
+        // Actualizar todos los gráficos
+        updateAllCharts(currency);
+    }
+
+    // Función para actualizar todos los gráficos
+    function updateAllCharts(currency) {
+        const symbol = getCurrencySymbol(currency);
+
+        // Actualizar gráfico de país
+        if (charts.country && originalDataUSD.countryAvg) {
+            const userSalary = convertToDisplayCurrency(originalDataUSD.salary, currency);
+            const countryAvg = convertToDisplayCurrency(originalDataUSD.countryAvg, currency);
+
+            charts.country.data.datasets[0].data = [userSalary, countryAvg];
+            charts.country.options.plugins.tooltip.callbacks.label = function(context) {
+                return context.label + ': ' + symbol + formatMoney(context.parsed);
+            };
+            charts.country.update();
+        }
+
+        // Actualizar gráfico de educación
+        if (charts.education && originalDataUSD.educationAvg) {
+            const userSalary = convertToDisplayCurrency(originalDataUSD.salary, currency);
+            const educationAvg = convertToDisplayCurrency(originalDataUSD.educationAvg, currency);
+
+            charts.education.data.datasets[0].data = [userSalary, educationAvg];
+            charts.education.update();
+        }
+
+        // Actualizar gráfico de campo (género)
+        if (charts.field && originalDataUSD.maleSalary && originalDataUSD.femaleSalary) {
+            const maleSalary = convertToDisplayCurrency(originalDataUSD.maleSalary, currency);
+            const femaleSalary = convertToDisplayCurrency(originalDataUSD.femaleSalary, currency);
+
+            charts.field.data.datasets[0].data = [maleSalary, femaleSalary];
+            charts.field.options.plugins.tooltip.callbacks.label = function(context) {
+                return 'Salario: ' + symbol + formatMoney(context.parsed.y);
+            };
+            charts.field.update();
+        }
+
+        // Actualizar gráfico de comparación de países
+        if (charts.countriesComparison && originalDataUSD.countriesData) {
+            const convertedCountryValues = {};
+            Object.keys(originalDataUSD.countriesData).forEach(country => {
+                convertedCountryValues[country] = convertToDisplayCurrency(originalDataUSD.countriesData[country], currency);
+            });
+
+            charts.countriesComparison.data.datasets[0].data = Object.values(convertedCountryValues);
+            charts.countriesComparison.options.plugins.tooltip.callbacks.label = function(context) {
+                return 'Salario: ' + symbol + formatMoney(context.parsed.y);
+            };
+            charts.countriesComparison.options.scales.y.ticks.callback = function(value) {
+                return symbol + (value / 1000).toFixed(0) + 'K';
+            };
+            charts.countriesComparison.update();
+        }
+    }
+
+    // Animar el contador del salario con formato de moneda
+    let counter = 0;
+    const finalSalaryUSD = prediction.salary;
+    const finalSalary = convertToDisplayCurrency(finalSalaryUSD, currentDisplayCurrency);
+    const increment = finalSalary / 100;
+    const timer = setInterval(() => {
+        counter += increment;
+        if (counter >= finalSalary) {
+            counter = finalSalary;
+            clearInterval(timer);
+        }
+        const symbol = getCurrencySymbol(currentDisplayCurrency);
+        document.getElementById('salaryAmount').textContent = symbol + formatMoney(counter);
+    }, 20);
+
+    // Formatear rango de salario inicialmente
+    const symbol = getCurrencySymbol(currentDisplayCurrency);
+    const rangeMinConverted = convertToDisplayCurrency(prediction.statistics.salary_range.min, currentDisplayCurrency);
+    const rangeMaxConverted = convertToDisplayCurrency(prediction.statistics.salary_range.max, currentDisplayCurrency);
+    document.getElementById('salaryRangeMin').textContent = symbol + formatMoney(rangeMinConverted);
+    document.getElementById('salaryRangeMax').textContent = symbol + formatMoney(rangeMaxConverted);
+
+    // Crear gráficos
+    window.addEventListener('load', () => {
+        // Cargar estadísticas filtradas por el campo de estudio del usuario
+        const initialFilters = {
+            campoEstudio: prediction.comparisons.campoEstudio.user
+        };
+
+        fetch('/api/statistics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(initialFilters)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Estadísticas iniciales cargadas:', data);
+            createComparisonCharts(data);
+        })
+        .catch(error => {
+            console.error('Error al cargar estadísticas iniciales:', error);
+            // Si falla, crear gráficos sin datos de países
+            createComparisonCharts();
+        });
+    });
+
+    function createComparisonCharts(statsData = null) {
+        // Si hay datos de estadísticas filtradas, usarlos
+        const data = statsData || {
+            by_country: {},
+            by_education: {},
+            by_field: {},
+            by_gender: {},
+            average_age: prediction.comparisons.edad.average,
+            average_grade: prediction.comparisons.notaMedia.average
+        };
+
+        // Destruir gráficos existentes si existen
+        Object.keys(charts).forEach(key => {
+            if (charts[key]) {
+                charts[key].destroy();
+            }
+        });
+
+        // Gráfico de edad - usar edad media del API
+        const ageAverage = data.average_age || prediction.comparisons.edad.average;
+
+        // Actualizar texto de edad media
+        const ageAvgElement = document.getElementById('ageAvgText');
+        if (ageAvgElement) {
+            ageAvgElement.textContent = ageAverage + ' años';
+        }
+
+        charts.age = new Chart(document.getElementById('ageChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Tu edad', 'Media filtrada'],
+                datasets: [{
+                    data: [prediction.comparisons.edad.user, ageAverage],
+                    backgroundColor: ['#3B82F6', '#9CA3AF']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // Gráfico de país (comparación de salarios)
+        const countryAvg = statsData?.by_country?.[prediction.comparisons.pais.user] || prediction.comparisons.pais.average_salary;
+
+        // Guardar datos originales
+        originalDataUSD.countryAvg = countryAvg;
+
+        // Actualizar texto del promedio
+        const countryAvgElement = document.getElementById('countryAvgText');
+        if (countryAvgElement) {
+            const symbol = getCurrencySymbol(currentDisplayCurrency);
+            const displayValue = convertToDisplayCurrency(countryAvg, currentDisplayCurrency);
+            countryAvgElement.textContent = symbol + formatMoney(displayValue);
+        }
+
+        const userSalaryDisplay = convertToDisplayCurrency(prediction.salary, currentDisplayCurrency);
+        const countryAvgDisplay = convertToDisplayCurrency(countryAvg, currentDisplayCurrency);
+
+        charts.country = new Chart(document.getElementById('countryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Tu salario', 'Media país'],
+                datasets: [{
+                    data: [userSalaryDisplay, countryAvgDisplay],
+                    backgroundColor: ['#10B981', '#F59E0B']
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const symbol = getCurrencySymbol(currentDisplayCurrency);
+                                return context.label + ': ' + symbol + formatMoney(context.parsed);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de educación
+        const eduAvg = statsData?.by_education?.[prediction.comparisons.formacion.user] || prediction.comparisons.formacion.average_salary;
+
+        // Guardar datos originales
+        originalDataUSD.educationAvg = eduAvg;
+
+        // Actualizar texto del promedio
+        const educationAvgElement = document.getElementById('educationAvgText');
+        if (educationAvgElement) {
+            const symbol = getCurrencySymbol(currentDisplayCurrency);
+            const displayValue = convertToDisplayCurrency(eduAvg, currentDisplayCurrency);
+            educationAvgElement.textContent = symbol + formatMoney(displayValue);
+        }
+
+        const eduAvgDisplay = convertToDisplayCurrency(eduAvg, currentDisplayCurrency);
+
+        charts.education = new Chart(document.getElementById('educationChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Tu salario', 'Media ' + prediction.comparisons.formacion.user],
+                datasets: [{
+                    data: [userSalaryDisplay, eduAvgDisplay],
+                    backgroundColor: ['#8B5CF6', '#EC4899']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // Gráfico de campo de estudio - comparación por género
+        const maleSalary = data.by_gender?.Male || 50000;
+        const femaleSalary = data.by_gender?.Female || 48000;
+
+        // Guardar datos originales
+        originalDataUSD.maleSalary = maleSalary;
+        originalDataUSD.femaleSalary = femaleSalary;
+
+        // Actualizar texto del promedio (mostrar promedio general del campo)
+        const fieldAvg = statsData?.by_field?.[prediction.comparisons.campoEstudio.user] || prediction.comparisons.campoEstudio.average_salary;
+        originalDataUSD.fieldAvg = fieldAvg;
+
+        const fieldAvgElement = document.getElementById('fieldAvgText');
+        if (fieldAvgElement) {
+            const symbol = getCurrencySymbol(currentDisplayCurrency);
+            const displayValue = convertToDisplayCurrency(fieldAvg, currentDisplayCurrency);
+            fieldAvgElement.textContent = symbol + formatMoney(displayValue);
+        }
+
+        const maleSalaryDisplay = convertToDisplayCurrency(maleSalary, currentDisplayCurrency);
+        const femaleSalaryDisplay = convertToDisplayCurrency(femaleSalary, currentDisplayCurrency);
+
+        charts.field = new Chart(document.getElementById('fieldChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Hombre', 'Mujer'],
+                datasets: [{
+                    label: 'Salario Promedio',
+                    data: [maleSalaryDisplay, femaleSalaryDisplay],
+                    backgroundColor: ['#3B82F6', '#EC4899']
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const symbol = getCurrencySymbol(currentDisplayCurrency);
+                                return 'Salario: ' + symbol + formatMoney(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // Gráfico de nota media - usar nota media del API
+        const gradeAverage = data.average_grade || prediction.comparisons.notaMedia.average;
+
+        // Actualizar texto de nota media
+        const gradeAvgElement = document.getElementById('gradeAvgText');
+        if (gradeAvgElement) {
+            gradeAvgElement.textContent = gradeAverage.toFixed(1) + '/10';
+        }
+
+        charts.grade = new Chart(document.getElementById('gradeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Tu nota', 'Media filtrada'],
+                datasets: [{
+                    data: [prediction.comparisons.notaMedia.user, gradeAverage],
+                    backgroundColor: ['#F59E0B', '#6B7280']
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, max: 10 } }
+            }
+        });
+
+        // Gráfico de comparación de países (full width)
+        const countryData = data.by_country || {
+            'Brazil': 45000, 'China': 48000, 'Spain': 52000, 'Pakistan': 39000,
+            'USA': 89000, 'India': 42000, 'Vietnam': 41000, 'Nigeria': 39000
+        };
+
+        // Guardar datos originales
+        originalDataUSD.countriesData = countryData;
+
+        const countryLabels = Object.keys(countryData);
+        const countryValuesUSD = Object.values(countryData);
+
+        // Convertir a la moneda actual
+        const countryValuesDisplay = countryValuesUSD.map(value =>
+            convertToDisplayCurrency(value, currentDisplayCurrency)
+        );
+
+        charts.countriesComparison = new Chart(document.getElementById('countriesComparisonChart'), {
+            type: 'bar',
+            data: {
+                labels: countryLabels,
+                datasets: [{
+                    label: 'Salario Promedio',
+                    data: countryValuesDisplay,
+                    backgroundColor: [
+                        '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
+                        '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const symbol = getCurrencySymbol(currentDisplayCurrency);
+                                return 'Salario: ' + symbol + formatMoney(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                const symbol = getCurrencySymbol(currentDisplayCurrency);
+                                return symbol + (value / 1000).toFixed(0) + 'K';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Aplicar filtros
+    function applyFilters() {
+        const filters = {
+            pais: document.getElementById('filterCountry').value,
+            genero: document.getElementById('filterGender').value,
+            formacion: document.getElementById('filterEducation').value,
+            campoEstudio: document.getElementById('filterField').value
+        };
+
+        // Mostrar indicador de carga en el botón
+        const button = event.target;
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Cargando...';
+
+        // Efecto fade out en los gráficos
+        const grid = document.getElementById('comparisonsGrid');
+        grid.style.opacity = '0.5';
+
+        // Hacer petición para obtener estadísticas filtradas
+        fetch('/api/statistics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(filters)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar gráficos con nuevos datos
+            console.log('Estadísticas filtradas:', data);
+            createComparisonCharts(data);
+
+            // Restaurar opacidad con efecto fade in
+            setTimeout(() => {
+                grid.style.opacity = '1';
+            }, 100);
+
+            // Restaurar botón
+            button.disabled = false;
+            button.textContent = originalText;
+
+            // Mostrar notificación de éxito
+            const successMsg = translations[currentLang]['notification.filtersApplied'] || 'Filtros aplicados correctamente';
+            showNotification(successMsg, 'success');
+        })
+        .catch(error => {
+            console.error('Error al aplicar filtros:', error);
+            grid.style.opacity = '1';
+            button.disabled = false;
+            button.textContent = originalText;
+            const errorMsg = translations[currentLang]['notification.filtersError'] || 'Error al aplicar filtros';
+            showNotification(errorMsg, 'error');
+        });
+    }
+
+    // Función auxiliar para mostrar notificaciones
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 transition-opacity ${
+            type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        }`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Conectar el selector de moneda local (en resultados) con el cambio de divisa
+    document.addEventListener('DOMContentLoaded', function() {
+        // La moneda ya está cargada en currentDisplayCurrency al inicio del script
+        const savedCurrency = currentDisplayCurrency;
+
+        // Sincronizar ambos selectores
+        const globalCurrencySelector = document.getElementById('currencySelector');
+        const localCurrencySelector = document.getElementById('localCurrencySelector');
+
+        if (globalCurrencySelector) {
+            globalCurrencySelector.value = savedCurrency;
+        }
+        if (localCurrencySelector) {
+            localCurrencySelector.value = savedCurrency;
+        }
+
+        // Event listener para el selector local
+        if (localCurrencySelector) {
+            localCurrencySelector.addEventListener('change', function(e) {
+                const selectedCurrency = e.target.value;
+                localStorage.setItem('selectedCurrency', selectedCurrency);
+
+                // Sincronizar con el global
+                if (globalCurrencySelector) {
+                    globalCurrencySelector.value = selectedCurrency;
+                }
+
+                // Actualizar gráficos
+                updateChartsWithCurrency(selectedCurrency);
+            });
+        }
+
+        // Aplicar la moneda guardada inicialmente
+        setTimeout(() => {
+            updateChartsWithCurrency(savedCurrency);
+        }, 500);
+    });
+</script>
+{% endblock %}

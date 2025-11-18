@@ -14,11 +14,11 @@
         </p>
         
         <div class="flex gap-4 justify-center">
-            <a href="{{ url_for('formulario', form_id='new') }}" 
+            <a href="{{ url_for('views.formulario', form_id='new') }}" 
                class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
                 <span data-i18n="hero.start">Comenzar Predicción</span>
             </a>
-            <a href="{{ url_for('info') }}" 
+            <a href="{{ url_for('views.info') }}" 
                class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold border-2 border-blue-600 hover:bg-blue-50 transition-colors">
                 <span data-i18n="hero.more">Más Información</span>
             </a>

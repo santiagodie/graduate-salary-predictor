@@ -168,22 +168,30 @@ function previousStep() {
 }
 
 function validateStep(step) {
-    const stepElement = document.getElementById(`step${step}`);
+    console.log('Validando paso', step);
+    const stepElement = document.getElementById('step' + step);
     const requiredFields = stepElement.querySelectorAll('[required]');
     let isValid = true;
     
+    console.log('Campos requeridos encontrados:', requiredFields.length);
+    
     requiredFields.forEach(field => {
         if (field.type === 'radio') {
-            const radioGroup = stepElement.querySelectorAll(`input[name="${field.name}"]`);
+            const radioGroup = stepElement.querySelectorAll('input[name="' + field.name + '"]');
             const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+            console.log('Radio ' + field.name + ': ' + (isChecked ? 'OK' : 'FALTA'));
             if (!isChecked) {
                 isValid = false;
             }
-        } else if (!field.value) {
+        } else if (!field.value || field.value === '') {
+            console.log('Campo ' + field.name + ': FALTA (valor: "' + field.value + '")');
             isValid = false;
+        } else {
+            console.log('Campo ' + field.name + ': OK (valor: "' + field.value + '")');
         }
     });
     
+    console.log('Resultado validacion:', isValid);
     return isValid;
 }
 
@@ -210,6 +218,7 @@ function showErrors(step) {
 }
 
 function saveStepData(step) {
+    console.log("Guardando datos del paso", step);
     const stepElement = document.getElementById(`step${step}`);
     const inputs = stepElement.querySelectorAll('input, select');
     
@@ -227,6 +236,7 @@ function saveStepData(step) {
     
     // Guardar en sessionStorage
     sessionStorage.setItem('formData', JSON.stringify(formData));
+    console.log("Datos guardados:", formData);
 }
 
 function loadFormData() {
@@ -267,31 +277,53 @@ function submitForm() {
     if (typeof formId !== 'undefined') {
         formData.form_id = formId;
     }
+    console.log("Datos a enviar:", formData);
+    
     
     // Enviar datos al servidor
-    fetch('/api/predict', {
-        method: 'POST',
+    fetch("/api/predict", {
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json"
         },
         body: JSON.stringify(formData)
     })
-    .then(response => response.json())
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(JSON.stringify(err));
+            });
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Predicción exitosa:', data);
         // Limpiar datos guardados
         sessionStorage.removeItem('formData');
         
         // Redireccionar a resultados
         const resultFormId = data.form_id || formId || 'new';
-        window.location.href = `/formulario/resultado/${resultFormId}`;
+        window.location.href = '/formulario/resultado/' + resultFormId;
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error completo:', error);
         document.getElementById('loadingSpinner').classList.add('hidden');
-        alert('Hubo un error al procesar tu predicción. Por favor, intenta de nuevo.');
+        
+        let errorMsg = 'Hubo un error al procesar tu predicción.';
+        try {
+            const errorData = JSON.parse(error.message);
+            console.error('Detalles del error:', errorData);
+            if (errorData.details) {
+                errorMsg += '\n\nDetalles: ' + JSON.stringify(errorData.details, null, 2);
+            }
+        } catch (e) {
+            errorMsg += '\n\n' + error.message;
+        }
+        
+        alert(errorMsg);
     });
 }
-
 // Cargar datos guardados al iniciar
 if (document.getElementById('predictionForm')) {
     document.addEventListener('DOMContentLoaded', loadFormData);

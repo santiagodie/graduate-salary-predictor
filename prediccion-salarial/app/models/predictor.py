@@ -1,19 +1,23 @@
 # model/predictor.py
 
-import joblib
+import pickle
 import pandas as pd
+import warnings
 from pathlib import Path
 from typing import Dict, Any
 import json
 from datetime import datetime
+
+# Suprimir advertencias de incompatibilidad de versiones de sklearn
+warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 
 # --------------------------------------------------------------------------
 # --- 1. CONFIGURACIÓN Y CARGA DEL MODELO ---
 # --------------------------------------------------------------------------
 
 # Rutas de archivos
-MODEL_FILE = Path(__file__).parent / 'model.pkl'
-META_FILE = Path(__file__).parent / 'metadata.json'
+MODEL_FILE = Path(__file__).parent.parent.parent / 'data' / 'modelo_entrenado.pkl'
+META_FILE = Path(__file__).parent.parent.parent / 'data' / 'metadata.json'
 
 # 2. ORDEN EXACTO DE LAS COLUMNAS (FEATURES) que el modelo espera
 # Basado en tu schema.py y formulario
@@ -64,27 +68,35 @@ ENCODING_MAPS = {
     }
 }
 
-# Variables globales
 MODEL = None
 SCALER = None
 METADATA = None
+_PREDICTOR_AVAILABLE = False
+_MOCK_ERR = None
 
 # --------------------------------------------------------------------------
 # --- CARGA INICIAL ---
 # --------------------------------------------------------------------------
 
 def _load_model():
-    """Carga el modelo una única vez al iniciar."""
+    global MODEL, SCALER, METADATA, _PREDICTOR_AVAILABLE, _MOCK_ERR
     global MODEL, SCALER, METADATA
-    
+
+    print(f"[INFO] Intentando cargar modelo desde: {MODEL_FILE}")
+    print(f"[INFO] Archivo existe: {MODEL_FILE.exists()}")
+
     try:
-        MODEL = joblib.load(MODEL_FILE)
+        with open(MODEL_FILE, 'rb') as file:
+            MODEL = pickle.load(file)
         print(f"[OK] Modelo predictivo cargado exitosamente desde {MODEL_FILE}")
-        
+        _PREDICTOR_AVAILABLE = True
+        print(f"[OK] Tipo de modelo: {type(MODEL)}")
+
         # Si usaste un scaler, cárgalo aquí
-        scaler_path = MODEL_FILE.parent / 'scaler.pkl'
+        scaler_path = Path(__file__).parent.parent.parent / 'data' / 'scaler.pkl'
         if scaler_path.exists():
-            SCALER = joblib.load(scaler_path)
+            with open(scaler_path, 'rb') as file:
+                SCALER = pickle.load(file)
             print(f"[OK] Scaler cargado desde {scaler_path}")
         
         # Cargar metadata si existe
@@ -105,6 +117,7 @@ def _load_model():
         print(f"[WARNING] Archivo del modelo no encontrado en {MODEL_FILE}")
         print("          El sistema funcionará en modo MOCK para desarrollo")
     except Exception as e:
+        _MOCK_ERR = str(e)
         print(f"[ERROR] Error al cargar el modelo: {e}")
 
 # Cargar al importar el módulo
@@ -200,34 +213,40 @@ def _apply_scaling(df: pd.DataFrame) -> pd.DataFrame:
 def predict_one(features_dict: Dict[str, Any]) -> float:
     """
     Función principal que usa app.py para hacer predicciones.
-    
+
     Args:
         features_dict: Diccionario con todas las features necesarias
-        
+
     Returns:
         float: Predicción del salario
     """
     # Verificación inicial
     if MODEL is None:
         # Modo MOCK para desarrollo
-        print("[WARNING] Usando predicción MOCK (modelo no cargado)")
+        print("[WARNING] Usando prediccion MOCK (modelo no cargado)")
         return 45000.0 + (features_dict.get('edad', 25) * 500)
-    
+
+    print(f"[INFO] Usando MODELO REAL para prediccion")
+    print(f"[INFO] Features recibidas: {list(features_dict.keys())}")
+
     # 1. Preprocesar features
     try:
         df = _preprocess_features(features_dict)
+        print(f"[INFO] Features preprocesadas correctamente")
     except ValueError as e:
         raise ValueError(f"Error en preprocesamiento: {e}")
-    
+
     # 2. Aplicar escalado si corresponde
     df_final = _apply_scaling(df)
-    
+
     # 3. Realizar predicción
     try:
         prediction = MODEL.predict(df_final)[0]
+        print(f"[INFO] Prediccion realizada: {prediction:.2f}")
     except Exception as e:
+        _MOCK_ERR = str(e)
         raise Exception(f"Error al ejecutar predicción del modelo: {e}")
-    
+
     # 4. Devolver resultado
     return float(prediction)
 
@@ -361,6 +380,7 @@ if __name__ == "__main__":
         print(f"  - Versión: {meta['version']}")
         print(f"  - Features: {len(meta['features'])}")
     except Exception as e:
+        _MOCK_ERR = str(e)
         print(f"\n[ERROR] Error en predicción: {e}")
     
     print("\n" + "="*60)

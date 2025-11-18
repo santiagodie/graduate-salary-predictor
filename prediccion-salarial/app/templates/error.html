@@ -19,48 +19,48 @@
                 ❌
             {% endif %}
         </div>
-        
+
         <!-- Error Title -->
         <h1 class="text-4xl font-bold text-gray-800 mb-4">
             {% if error_code == '404' %}
-                Página no encontrada
+                <span data-i18n="error.404.title">Página no encontrada</span>
             {% elif error_code == '500' %}
-                Error del servidor
+                <span data-i18n="error.500.title">Error del servidor</span>
             {% elif error_code == 'timeout' %}
-                Tiempo de espera agotado
+                <span data-i18n="error.timeout.title">Tiempo de espera agotado</span>
             {% elif error_code == 'offline' %}
-                Sin conexión
+                <span data-i18n="error.offline.title">Sin conexión</span>
             {% else %}
-                Algo salió mal
+                <span data-i18n="error.generic.title">Algo salió mal</span>
             {% endif %}
         </h1>
-        
+
         <!-- Error Message -->
         <p class="text-xl text-gray-600 mb-8">
             {% if error_code == '404' %}
-                La página que buscas no existe o ha sido movida.
+                <span data-i18n="error.404.message">La página que buscas no existe o ha sido movida.</span>
             {% elif error_code == '500' %}
-                Hubo un problema con nuestro servidor. Por favor, intenta de nuevo más tarde.
+                <span data-i18n="error.500.message">Hubo un problema con nuestro servidor. Por favor, intenta de nuevo más tarde.</span>
             {% elif error_code == 'timeout' %}
-                La solicitud tardó demasiado tiempo. Por favor, verifica tu conexión e intenta de nuevo.
+                <span data-i18n="error.timeout.message">La solicitud tardó demasiado tiempo. Por favor, verifica tu conexión e intenta de nuevo.</span>
             {% elif error_code == 'offline' %}
-                Parece que no tienes conexión a internet. Verifica tu conexión e intenta de nuevo.
+                <span data-i18n="error.offline.message">Parece que no tienes conexión a internet. Verifica tu conexión e intenta de nuevo.</span>
             {% else %}
                 {{ error_message }}
             {% endif %}
         </p>
-        
+
         <!-- Error Code -->
         <div class="bg-gray-100 rounded-lg px-4 py-2 inline-block mb-8">
-            <span class="text-sm text-gray-500">Código de error:</span>
+            <span class="text-sm text-gray-500" data-i18n="error.code">Código de error:</span>
             <span class="font-mono font-bold text-gray-700">{{ error_code }}</span>
         </div>
-        
+
         <!-- Action Button -->
         <div>
-            <a href="{{ url_for('inicio') }}" 
+            <a href="{{ url_for('views.inicio') }}"
                class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg inline-block">
-                Volver al Inicio
+                <span data-i18n="error.home">Volver al Inicio</span>
             </a>
         </div>
     </div>

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Información del Modelo - Predicción Salarial{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-4xl">
+    <h1 class="text-4xl font-bold text-center mb-8" data-i18n="info.title">
+        Cómo Funciona Nuestro Modelo
+    </h1>
+
+    <div class="bg-white rounded-xl shadow-md p-8 mb-8">
+        <h2 class="text-2xl font-bold mb-4" data-i18n="info.factors.title">
+            Factores que Influyen en la Predicción
+        </h2>
+
+        <div class="space-y-4">
+            <div class="border-l-4 border-blue-600 pl-4">
+                <h3 class="font-bold text-lg" data-i18n="info.factor.education.title">Formación Académica (90%)</h3>
+                <p class="text-gray-600" data-i18n="info.factor.education.desc">Este es el factor dominante. Casi el 85% de la predicción se basa en el Nivel de Estudios (Doctorado o Máster). El ranking universitario y el campo de estudio tienen un impacto menor.</p>
+            </div>
+
+            <div class="border-l-4 border-yellow-600 pl-4">
+                <h3 class="font-bold text-lg" data-i18n="info.factor.skills.title">Competencias (5%)</h3>
+                <p class="text-gray-600" data-i18n="info.factor.skills.desc">La nota media (GPA) es el segundo factor individual más importante (casi 3%), seguido por el nivel de idioma (1.2%).</p>
+            </div>
+
+            <div class="border-l-4 border-green-600 pl-4">
+                <h3 class="font-bold text-lg" data-i18n="info.factor.experience.title">Experiencia (2.5%)</h3>
+                <p class="text-gray-600" data-i18n="info.factor.experience.desc">Los años desde la graduación y la realización de prácticas tienen un impacto leve en la predicción de este modelo.</p>
+            </div>
+
+            <div class="border-l-4 border-purple-600 pl-4">
+                <h3 class="font-bold text-lg" data-i18n="info.factor.location.title">Ubicación Geográfica (1.5%)</h3>
+                <p class="text-gray-600" data-i18n="info.factor.location.desc">El país de origen y la región donde estudiaste. Tienen una influencia muy baja en el resultado.</p>
+            </div>
+
+            <div class="border-l-4 border-gray-600 pl-4">
+                <h3 class="font-bold text-lg" data-i18n="info.factor.demographics.title">Datos Demográficos (1.5%)</h3>
+                <p class="text-gray-600" data-i18n="info.factor.demographics.desc">La edad y el género del graduado también son considerados por el modelo, aunque con un impacto bajo.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md p-8 mb-8">
+        <h2 class="text-2xl font-bold mb-4" data-i18n="info.methodology.title">
+            Metodología
+        </h2>
+        <p class="text-gray-600 mb-4" data-i18n="info.methodology.text">
+            Nuestro modelo utiliza técnicas de aprendizaje automático entrenadas con datos de más de
+            300,000 graduados internacionales. El algoritmo considera múltiples variables y sus
+            interacciones para proporcionar una estimación precisa.
+        </p>
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+            <p class="text-sm text-blue-800" data-i18n-html="info.methodology.note">
+                <strong>Nota:</strong> Las predicciones son estimaciones basadas en los datos de entrenamiento
+                y no garantizan salarios específicos. Como has visto, este modelo prioriza enormemente el nivel
+                educativo por encima de todos los demás factores.
+            </p>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ url_for('views.formulario', form_id='new') }}"
+           class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+            <span data-i18n="info.start">Comenzar Predicción</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
