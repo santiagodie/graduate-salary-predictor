@@ -1,7 +1,9 @@
 # Predictor de Sueldos
 
 **Trabajo Final 2025-2026**
+
 **Asignatura:** Profesión de Ingeniero Informático
+
 **Universidad de La Rioja**
 
 ## Integrantes del Grupo
@@ -21,6 +23,13 @@ Sistema de predicción salarial desarrollado con Flask y Machine Learning que pe
 - **Flask 3.0.0** - Framework web de Python
 - **Flask-CORS** - Manejo de CORS para API REST
 - **Pydantic** - Validación de datos
+
+### Frontend
+- **HTML5** - Estructura de las páginas web
+- **Tailwind CSS** - Framework CSS para diseño responsive y moderno
+- **JavaScript (Vanilla)** - Interactividad y lógica del cliente
+- **Chart.js** - Librería para visualización de datos y gráficos
+- **Jinja2** - Motor de plantillas integrado con Flask
 
 ### Machine Learning y Procesamiento de Datos
 - **Scikit-learn** - Algoritmos de machine learning
@@ -101,11 +110,21 @@ python -m pytest tests/
 
 ## Funcionalidades
 
-- Predicción de salarios basada en Machine Learning
-- Interfaz web amigable e intuitiva
-- API REST para integración con otros sistemas
-- Validación de datos de entrada
-- Análisis de características relevantes para la predicción
+### Características Principales
+- **Predicción de salarios** basada en Machine Learning
+- **Interfaz web moderna y responsive** con diseño adaptativo
+- **Visualización de datos** mediante gráficos interactivos (Chart.js)
+- **Historial de predicciones** con almacenamiento local
+- **Soporte multiidioma** (Español, Inglés, Francés)
+- **Conversión de divisas** (USD, EUR, GBP)
+- **API REST** para integración con otros sistemas
+- **Validación de datos** de entrada robusta
+- **Sistema de navegación intuitivo** con múltiples vistas:
+  - Página de inicio
+  - Formulario de predicción
+  - Resultados detallados
+  - Página de información
+  - Manejo de errores personalizado
 
 ## Desarrollo
 
@@ -113,21 +132,6 @@ python -m pytest tests/
 
 El archivo `config.py` contiene las configuraciones necesarias para el entorno de desarrollo y producción.
 
-### Contribuir al Proyecto
-
-1. Fork del proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/NuevaFuncionalidad`)
-3. Commit de tus cambios (`git commit -m 'Añade nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/NuevaFuncionalidad`)
-5. Abrir un Pull Request
-
-## Licencia
-
-Este proyecto es un trabajo académico desarrollado para la asignatura de Profesión de Ingeniero Informático de la Universidad de La Rioja.
-
-## Contacto
-
-Para consultas sobre el proyecto, contactar con cualquiera de los integrantes del grupo.
 
 ---
 
