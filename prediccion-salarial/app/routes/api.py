@@ -160,7 +160,7 @@ def predict():
 def get_statistics():
     """
     Obtener estadísticas filtradas para visualizaciones usando el modelo real
-    Body: { "pais": "España", "formacion": "Master", "genero": "Hombre", "campoEstudio": "IT" }
+    Body: { "pais": "Alemania", "formacion": "Master", "genero": "Hombre", "campoEstudio": "IT" }
     Retorna salarios, edad media y nota media filtrados
     """
     filters = request.json or {}
@@ -189,33 +189,33 @@ def get_statistics():
         'Age': 28.0,
         'Years_Since_Graduation': 3.0,
         'GPA_10': 7.5,
-        'Internship_Experience': 1,
+        'Internship_Experience': 'Yes',
         'Gender': 'Male',
-        'Education_Level': 'Bachelor',
-        'Field_of_Study': 'Computer Science',
+        'Education_Level': "Bachelor's",
+        'Field_of_Study': 'IT',
         'Language_Proficiency': 'Intermediate',
-        'University_Ranking': 'Top 500',
-        'Region_of_Study': 'Europe'
+        'University_Ranking': 'Medium',
+        'Region_of_Study': 'EU'
     }
 
     # Aplicar filtros al perfil base
     if filters.get('pais'):
-        base_profile['Country_of_Origin'] = COUNTRY_MAP.get(filters['pais'].lower(), 'Spain')
+        base_profile['Country_of_Origin'] = COUNTRY_MAP.get(filters['pais'].lower(), 'Germany')
     else:
-        base_profile['Country_of_Origin'] = 'Spain'
+        base_profile['Country_of_Origin'] = 'Germany'
 
     if filters.get('genero'):
         base_profile['Gender'] = GENDER_MAP.get(filters['genero'].lower(), 'Male')
 
     if filters.get('formacion'):
-        base_profile['Education_Level'] = EDUCATION_MAP.get(filters['formacion'].lower(), 'Bachelor')
+        base_profile['Education_Level'] = EDUCATION_MAP.get(filters['formacion'].lower(), "Bachelor's")
 
     if filters.get('campoEstudio'):
-        base_profile['Field_of_Study'] = FIELD_MAP.get(filters['campoEstudio'].lower(), 'Computer Science')
+        base_profile['Field_of_Study'] = FIELD_MAP.get(filters['campoEstudio'].lower(), 'IT')
 
     # Calcular estadísticas POR PAÍS con el perfil filtrado
     stats_by_country = {}
-    countries = ['Brazil', 'China', 'Spain', 'Pakistan', 'USA', 'India', 'Vietnam', 'Nigeria']
+    countries = ['Brazil', 'China', 'Germany', 'Pakistan', 'USA', 'India', 'Vietnam', 'Nigeria']
     for country in countries:
         profile = base_profile.copy()
         profile['Country_of_Origin'] = country
@@ -229,7 +229,7 @@ def get_statistics():
 
     # Calcular estadísticas POR EDUCACIÓN con el perfil filtrado
     stats_by_education = {}
-    education_levels = ['FP', 'Bachelor', 'Master', 'PhD']
+    education_levels = ['Diploma', "Bachelor's", "Master's", 'PhD']
     for edu in education_levels:
         profile = base_profile.copy()
         profile['Education_Level'] = edu
@@ -243,7 +243,7 @@ def get_statistics():
 
     # Calcular estadísticas POR CAMPO con el perfil filtrado
     stats_by_field = {}
-    fields = ['Arts', 'Engineering', 'Computer Science', 'Health', 'Social Sciences', 'Business']
+    fields = ['Arts', 'Engineering', 'IT', 'Health', 'Social Sciences', 'Business']
     for field in fields:
         profile = base_profile.copy()
         profile['Field_of_Study'] = field

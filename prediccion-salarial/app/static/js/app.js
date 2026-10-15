@@ -83,7 +83,7 @@ const translations = {
         'ranking.low': 'Bajo',
 
         // Regions
-        'region.usa': 'USA',
+        'region.canada': 'Canadá',
         'region.europe': 'Europa',
         'region.australia': 'Australia',
 
@@ -137,7 +137,7 @@ const translations = {
         // Countries
         'country.brasil': '🇧🇷 Brasil',
         'country.china': '🇨🇳 China',
-        'country.espana': '🇪🇸 España',
+        'country.alemania': '🇩🇪 Alemania',
         'country.pakistan': '🇵🇰 Pakistán',
         'country.usa': '🇺🇸 USA',
         'country.india': '🇮🇳 India',
@@ -264,7 +264,7 @@ const translations = {
         'ranking.low': 'Low',
 
         // Regions
-        'region.usa': 'USA',
+        'region.canada': 'Canada',
         'region.europe': 'Europe',
         'region.australia': 'Australia',
 
@@ -318,7 +318,7 @@ const translations = {
         // Countries
         'country.brasil': '🇧🇷 Brazil',
         'country.china': '🇨🇳 China',
-        'country.espana': '🇪🇸 Spain',
+        'country.alemania': '🇩🇪 Germany',
         'country.pakistan': '🇵🇰 Pakistan',
         'country.usa': '🇺🇸 USA',
         'country.india': '🇮🇳 India',
@@ -445,7 +445,7 @@ const translations = {
         'ranking.low': 'Faible',
 
         // Regions
-        'region.usa': 'USA',
+        'region.canada': 'Canada',
         'region.europe': 'Europe',
         'region.australia': 'Australie',
 
@@ -499,7 +499,7 @@ const translations = {
         // Countries
         'country.brasil': '🇧🇷 Brésil',
         'country.china': '🇨🇳 Chine',
-        'country.espana': '🇪🇸 Espagne',
+        'country.alemania': '🇩🇪 Allemagne',
         'country.pakistan': '🇵🇰 Pakistan',
         'country.usa': '🇺🇸 USA',
         'country.india': '🇮🇳 Inde',
@@ -1019,8 +1019,8 @@ document.addEventListener('DOMContentLoaded', function() {
         'Brasil': 'country.brasil',
         'Brazil': 'country.brasil',
         'China': 'country.china',
-        'España': 'country.espana',
-        'Spain': 'country.espana',
+        'Alemania': 'country.alemania',
+        'Germany': 'country.alemania',
         'Pakistán': 'country.pakistan',
         'Pakistan': 'country.pakistan',
         'USA': 'country.usa',

@@ -30,7 +30,7 @@ class PredictRequest(BaseModel):
     @field_validator('pais')
     @classmethod
     def validate_pais(cls, v):
-        valid = ['Brasil', 'China', 'España', 'Pakistán', 'USA', 'India', 'Vietnam', 'Nigeria']
+        valid = ['Brasil', 'China', 'Alemania', 'Pakistán', 'USA', 'India', 'Vietnam', 'Nigeria']
         if v not in valid:
             raise ValueError(f'País debe ser uno de: {valid}')
         return v

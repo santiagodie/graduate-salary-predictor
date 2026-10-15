@@ -33,7 +33,7 @@ _STATS_CACHE = {
 # =============================================================================
 
 COUNTRY_MAP = {
-    'brasil': 'Brazil', 'china': 'China', 'españa': 'Spain',
+    'brasil': 'Brazil', 'china': 'China', 'alemania': 'Germany',
     'pakistán': 'Pakistan', 'usa': 'USA', 'india': 'India',
     'vietnam': 'Vietnam', 'nigeria': 'Nigeria'
 }
@@ -43,11 +43,11 @@ GENDER_MAP = {
 }
 
 EDUCATION_MAP = {
-    'fp': 'FP', 'grado': 'Bachelor', 'master': 'Master', 'phd': 'PhD'
+    'fp': 'Diploma', 'grado': "Bachelor's", 'master': "Master's", 'phd': 'PhD'
 }
 
 FIELD_MAP = {
-    'artes': 'Arts', 'ing': 'Engineering', 'it': 'Computer Science',
+    'artes': 'Arts', 'ing': 'Engineering', 'it': 'IT',
     'salud': 'Health', 's.sociales': 'Social Sciences', 's sociales': 'Social Sciences',
     'empresa': 'Business'
 }
@@ -60,11 +60,11 @@ LANGUAGE_MAP = {
 }
 
 RANKING_MAP = {
-    'alto': 'Top 100', 'medio': 'Top 500', 'bajo': 'Unranked'
+    'alto': 'High', 'medio': 'Medium', 'bajo': 'Low'
 }
 
 REGION_MAP = {
-    'australia': 'Australia', 'europa': 'Europe', 'usa': 'USA'
+    'australia': 'Australia', 'europa': 'EU', 'canadá': 'Canada', 'canada': 'Canada'
 }
 
 # Medias de edad y nota por campo de estudio
@@ -94,9 +94,9 @@ def build_comparisons(request_data: Dict[str, Any], salary: float) -> Dict[str, 
     """Construye objeto de comparaciones para la respuesta usando valores reales del modelo"""
 
     # Obtener valores del cache o usar defaults
-    country_eng = COUNTRY_MAP.get(request_data.get('pais', '').lower(), 'Spain')
-    education_eng = EDUCATION_MAP.get(request_data.get('titulacion', '').lower(), 'Bachelor')
-    field_eng = FIELD_MAP.get(request_data.get('campo_estudio', '').lower(), 'Computer Science')
+    country_eng = COUNTRY_MAP.get(request_data.get('pais', '').lower(), 'Germany')
+    education_eng = EDUCATION_MAP.get(request_data.get('titulacion', '').lower(), "Bachelor's")
+    field_eng = FIELD_MAP.get(request_data.get('campo_estudio', '').lower(), 'IT')
 
     country_avg = _STATS_CACHE['by_country'].get(country_eng, 35000)
     education_avg = _STATS_CACHE['by_education'].get(education_eng, 40000)
@@ -168,21 +168,21 @@ def calculate_average_salaries_from_model():
         'Age': 28.0,
         'Years_Since_Graduation': 3.0,
         'GPA_10': 7.5,
-        'Internship_Experience': 1
+        'Internship_Experience': 'Yes'
     }
 
     # Calcular salarios por país
-    countries = ['Brazil', 'China', 'Spain', 'Pakistan', 'USA', 'India', 'Vietnam', 'Nigeria']
+    countries = ['Brazil', 'China', 'Germany', 'Pakistan', 'USA', 'India', 'Vietnam', 'Nigeria']
     for country in countries:
         profile = base_profile.copy()
         profile.update({
             'Country_of_Origin': country,
             'Gender': 'Male',
-            'Education_Level': 'Bachelor',
-            'Field_of_Study': 'Computer Science',
+            'Education_Level': "Bachelor's",
+            'Field_of_Study': 'IT',
             'Language_Proficiency': 'Intermediate',
-            'University_Ranking': 'Top 500',
-            'Region_of_Study': 'Europe'
+            'University_Ranking': 'Medium',
+            'Region_of_Study': 'EU'
         })
 
         try:
@@ -193,17 +193,17 @@ def calculate_average_salaries_from_model():
             print(f"[ERROR] Error calculando salario para {country}: {e}")
 
     # Calcular salarios por educación
-    education_levels = ['FP', 'Bachelor', 'Master', 'PhD']
+    education_levels = ['Diploma', "Bachelor's", "Master's", 'PhD']
     for edu in education_levels:
         profile = base_profile.copy()
         profile.update({
-            'Country_of_Origin': 'Spain',
+            'Country_of_Origin': 'Germany',
             'Gender': 'Male',
             'Education_Level': edu,
-            'Field_of_Study': 'Computer Science',
+            'Field_of_Study': 'IT',
             'Language_Proficiency': 'Intermediate',
-            'University_Ranking': 'Top 500',
-            'Region_of_Study': 'Europe'
+            'University_Ranking': 'Medium',
+            'Region_of_Study': 'EU'
         })
 
         try:
@@ -214,17 +214,17 @@ def calculate_average_salaries_from_model():
             print(f"[ERROR] Error calculando salario para {edu}: {e}")
 
     # Calcular salarios por campo de estudio
-    fields = ['Arts', 'Engineering', 'Computer Science', 'Health', 'Social Sciences', 'Business']
+    fields = ['Arts', 'Engineering', 'IT', 'Health', 'Social Sciences', 'Business']
     for field in fields:
         profile = base_profile.copy()
         profile.update({
-            'Country_of_Origin': 'Spain',
+            'Country_of_Origin': 'Germany',
             'Gender': 'Male',
-            'Education_Level': 'Bachelor',
+            'Education_Level': "Bachelor's",
             'Field_of_Study': field,
             'Language_Proficiency': 'Intermediate',
-            'University_Ranking': 'Top 500',
-            'Region_of_Study': 'Europe'
+            'University_Ranking': 'Medium',
+            'Region_of_Study': 'EU'
         })
 
         try:
@@ -267,10 +267,10 @@ def translate_features_to_english(data: Dict[str, Any]) -> Dict[str, Any]:
             'Years_Since_Graduation': float(data['anios_desde_obtencion']),
             'Field_of_Study': FIELD_MAP.get(campo_lower, data['campo_estudio']),
             'Language_Proficiency': LANGUAGE_MAP.get(ingles_lower, data['nivel_ingles']),
-            'University_Ranking': RANKING_MAP.get(ranking_lower, 'Unranked'),
+            'University_Ranking': RANKING_MAP.get(ranking_lower, 'Low'),
             'Region_of_Study': REGION_MAP.get(region_lower, data['region_estudio']),
             'GPA_10': float(data['nota_media']),
-            'Internship_Experience': 1 if data['practicas'] else 0,
+            'Internship_Experience': 'Yes' if data['practicas'] else 'No',
         }
         return features
     except KeyError as e:
