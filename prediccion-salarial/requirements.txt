@@ -1,6 +1,9 @@
+# Tested with Python 3.11. The bundled model was trained with scikit-learn 1.4.2;
+# newer scikit-learn versions cannot use the pickled pipeline.
 Flask==3.0.0
-flask-cors
-pydantic
-requests
-pandas
-scikit-learn
+flask-cors==6.0.5
+pydantic==2.14.1
+requests==2.34.2
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.4.2
