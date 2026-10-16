@@ -1,0 +1,83 @@
+{
+  "categorical": [
+    {
+      "name": "Country_of_Origin",
+      "categories": [
+        "Brazil",
+        "China",
+        "Germany",
+        "India",
+        "Nigeria",
+        "Pakistan",
+        "USA",
+        "Vietnam"
+      ]
+    },
+    {
+      "name": "Education_Level",
+      "categories": [
+        "Bachelor's",
+        "Diploma",
+        "Master's",
+        "PhD"
+      ]
+    },
+    {
+      "name": "Field_of_Study",
+      "categories": [
+        "Arts",
+        "Business",
+        "Engineering",
+        "Health",
+        "IT",
+        "Social Sciences"
+      ]
+    },
+    {
+      "name": "Language_Proficiency",
+      "categories": [
+        "Advanced",
+        "Basic",
+        "Fluent",
+        "Intermediate"
+      ]
+    },
+    {
+      "name": "Gender",
+      "categories": [
+        "Female",
+        "Male",
+        "Other"
+      ]
+    },
+    {
+      "name": "University_Ranking",
+      "categories": [
+        "High",
+        "Low",
+        "Medium"
+      ]
+    },
+    {
+      "name": "Region_of_Study",
+      "categories": [
+        "Australia",
+        "Canada",
+        "EU"
+      ]
+    },
+    {
+      "name": "Internship_Experience",
+      "categories": [
+        "No",
+        "Yes"
+      ]
+    }
+  ],
+  "numeric": [
+    "Age",
+    "Years_Since_Graduation",
+    "GPA_10"
+  ],
+  "n_features": 36
+}
