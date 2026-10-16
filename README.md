@@ -1,5 +1,7 @@
 # Graduate Salary Predictor
 
+**[Live demo](https://santiagodie.github.io/graduate-salary-predictor/)**: a static version of the app that runs the same trained model in your browser with ONNX (onnxruntime-web), with no server involved.
+
 A web application that estimates the expected salary of a recent graduate from their profile (age, country of origin, degree, field of study, English level, university ranking, region of study, GPA and internship experience). Predictions come from a scikit-learn Random Forest served through a Flask REST API, with an interactive front end that compares the result against other profiles.
 
 > This was a **group project by a team of four** (see [Team](#team)). The original repository is [alhidalgb/Predictor_sueldos](https://github.com/alhidalgb/Predictor_sueldos).
