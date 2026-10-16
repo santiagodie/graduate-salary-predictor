@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario - Predicción Salarial</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script>
+        // Suprimir la advertencia de Tailwind CDN en desarrollo
+        tailwind.config = {
+            devtools: false
+        }
+    </script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Custom ICON -->
+    <link rel="icon" type="image/jpg" href="img/favicon.jpg">
+
+    <!-- Custom Styles -->
+    <style>
+        /* Custom scrollbar for sidebar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Sidebar open state */
+        #historySidebar.open {
+            width: 320px;
+            min-width: 320px;
+        }
+
+        /* Smooth transitions for sidebar */
+        #historySidebar {
+            transition: width 0.3s ease-in-out, min-width 0.3s ease-in-out;
+        }
+
+        /* Body layout */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+    </style>
+
+    
+</head>
+<body class="bg-gray-50" data-page="formulario">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <!-- History Button -->
+                    <button id="historyToggle"
+                            class="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-all duration-300 flex items-center gap-2 cursor-pointer">
+
+                        <span class="flex-shrink-0">
+                            <svg viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0)" class="w-5 h-5">
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                <g id="SVGRepo_iconCarrier">
+                                    <path d="M12 8V12L14.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path d="M5.60423 5.60423L5.0739 5.0739V5.0739L5.60423 5.60423ZM4.33785 6.87061L3.58786 6.87438C3.58992 7.28564 3.92281 7.61853 4.33408 7.6206L4.33785 6.87061ZM6.87963 7.63339C7.29384 7.63547 7.63131 7.30138 7.63339 6.88717C7.63547 6.47296 7.30138 6.13549 6.88717 6.13341L6.87963 7.63339ZM5.07505 4.32129C5.07296 3.90708 4.7355 3.57298 4.32129 3.57506C3.90708 3.57715 3.57298 3.91462 3.57507 4.32882L5.07505 4.32129ZM3.75 12C3.75 11.5858 3.41421 11.25 3 11.25C2.58579 11.25 2.25 11.5858 2.25 12H3.75ZM16.8755 20.4452C17.2341 20.2378 17.3566 19.779 17.1492 19.4204C16.9418 19.0619 16.483 18.9393 16.1245 19.1468L16.8755 20.4452ZM19.1468 16.1245C18.9393 16.483 19.0619 16.9418 19.4204 17.1492C19.779 17.3566 20.2378 17.2341 20.4452 16.8755L19.1468 16.1245ZM5.14033 5.07126C4.84598 5.36269 4.84361 5.83756 5.13505 6.13191C5.42648 6.42626 5.90134 6.42862 6.19569 6.13719L5.14033 5.07126ZM18.8623 5.13786C15.0421 1.31766 8.86882 1.27898 5.0739 5.0739L6.13456 6.13456C9.33366 2.93545 14.5572 2.95404 17.8017 6.19852L18.8623 5.13786ZM5.0739 5.0739L3.80752 6.34028L4.86818 7.40094L6.13456 6.13456L5.0739 5.0739ZM4.33408 7.6206L6.87963 7.63339L6.88717 6.13341L4.34162 6.12062L4.33408 7.6206ZM5.08784 6.86684L5.07505 4.32129L3.57507 4.32882L3.58786 6.87438L5.08784 6.86684ZM12 3.75C16.5563 3.75 20.25 7.44365 20.25 12H21.75C21.75 6.61522 17.3848 2.25 12 2.25V3.75ZM12 20.25C7.44365 20.25 3.75 16.5563 3.75 12H2.25C2.25 17.3848 6.61522 21.75 12 21.75V20.25ZM16.1245 19.1468C14.9118 19.8483 13.5039 20.25 12 20.25V21.75C13.7747 21.75 15.4407 21.2752 16.8755 20.4452L16.1245 19.1468ZM20.25 12C20.25 13.5039 19.8483 14.9118 19.1468 16.1245L20.4452 16.8755C21.2752 15.4407 21.75 13.7747 21.75 12H20.25ZM6.19569 6.13719C7.68707 4.66059 9.73646 3.75 12 3.75V2.25C9.32542 2.25 6.90113 3.32791 5.14033 5.07126L6.19569 6.13719Z" fill="currentColor"></path>
+                                </g>
+                            </svg>
+                        </span>
+
+                        <span data-i18n="history.button">Historial</span>
+                    </button>
+
+                    <div class="h-8 w-px bg-gray-300"></div>
+
+                    <a href="index.html" class="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                        💼 SalaryPredict
+                    </a>
+                </div>
+
+                <!-- Currency & Language Selectors -->
+                <div class="flex items-center gap-2">
+                    <select id="currencySelector" class="border rounded px-3 py-1 text-sm">
+                        <option value="USD">$ USD</option>
+                        <option value="EUR">€ EUR</option>
+                        <option value="GBP">£ GBP</option>
+                    </select>
+                    <select id="languageSelector" class="border rounded px-3 py-1 text-sm">
+                        <option value="es">🇪🇸 ES</option>
+                        <option value="en">🇬🇧 EN</option>
+                        <option value="fr">🇫🇷 FR</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Static demo notice -->
+    <div class="bg-blue-50 border-b border-blue-100 text-center text-xs text-blue-800 py-1.5 px-4">
+        <span data-i18n-html="demo.notice">Demo estática: el modelo se ejecuta en tu navegador. La versión completa es una app Flask (<a href="https://github.com/santiagodie/graduate-salary-predictor" class="underline">ver repositorio</a>).</span>
+    </div>
+
+    <!-- Content Wrapper with Sidebar -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- History Sidebar -->
+        <aside id="historySidebar" class="w-0 overflow-hidden transition-all duration-300 ease-in-out bg-gradient-to-b from-gray-50 to-white border-r border-gray-200 flex flex-col">
+            <!-- Sidebar Header -->
+            <div class="bg-white border-b border-gray-200 p-4 flex justify-center items-center relative">
+                <div id="sidebarHistoryButton" class="flex items-center gap-2 text-2xl font-bold text-blue-600 opacity-0 transition-opacity duration-300">
+                    <span class="flex-shrink-0">
+                        <svg viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6">
+                            <g id="SVGRepo_iconCarrier">
+                                <path d="M12 8V12L14.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path d="M5.60423 5.60423L5.0739 5.0739V5.0739L5.60423 5.60423ZM4.33785 6.87061L3.58786 6.87438C3.58992 7.28564 3.92281 7.61853 4.33408 7.6206L4.33785 6.87061ZM6.87963 7.63339C7.29384 7.63547 7.63131 7.30138 7.63339 6.88717C7.63547 6.47296 7.30138 6.13549 6.88717 6.13341L6.87963 7.63339ZM5.07505 4.32129C5.07296 3.90708 4.7355 3.57298 4.32129 3.57506C3.90708 3.57715 3.57298 3.91462 3.57507 4.32882L5.07505 4.32129ZM3.75 12C3.75 11.5858 3.41421 11.25 3 11.25C2.58579 11.25 2.25 11.5858 2.25 12H3.75ZM16.8755 20.4452C17.2341 20.2378 17.3566 19.779 17.1492 19.4204C16.9418 19.0619 16.483 18.9393 16.1245 19.1468L16.8755 20.4452ZM19.1468 16.1245C18.9393 16.483 19.0619 16.9418 19.4204 17.1492C19.779 17.3566 20.2378 17.2341 20.4452 16.8755L19.1468 16.1245ZM5.14033 5.07126C4.84598 5.36269 4.84361 5.83756 5.13505 6.13191C5.42648 6.42626 5.90134 6.42862 6.19569 6.13719L5.14033 5.07126ZM18.8623 5.13786C15.0421 1.31766 8.86882 1.27898 5.0739 5.0739L6.13456 6.13456C9.33366 2.93545 14.5572 2.95404 17.8017 6.19852L18.8623 5.13786ZM5.0739 5.0739L3.80752 6.34028L4.86818 7.40094L6.13456 6.13456L5.0739 5.0739ZM4.33408 7.6206L6.87963 7.63339L6.88717 6.13341L4.34162 6.12062L4.33408 7.6206ZM5.08784 6.86684L5.07505 4.32129L3.57507 4.32882L3.58786 6.87438L5.08784 6.86684ZM12 3.75C16.5563 3.75 20.25 7.44365 20.25 12H21.75C21.75 6.61522 17.3848 2.25 12 2.25V3.75ZM12 20.25C7.44365 20.25 3.75 16.5563 3.75 12H2.25C2.25 17.3848 6.61522 21.75 12 21.75V20.25ZM16.1245 19.1468C14.9118 19.8483 13.5039 20.25 12 20.25V21.75C13.7747 21.75 15.4407 21.2752 16.8755 20.4452L16.1245 19.1468ZM20.25 12C20.25 13.5039 19.8483 14.9118 19.1468 16.1245L20.4452 16.8755C21.2752 15.4407 21.75 13.7747 21.75 12H20.25ZM6.19569 6.13719C7.68707 4.66059 9.73646 3.75 12 3.75V2.25C9.32542 2.25 6.90113 3.32791 5.14033 5.07126L6.19569 6.13719Z" fill="currentColor"></path>
+                            </g>
+                        </svg>
+                    </span>
+                    <span data-i18n="history.button">Historial</span>
+                </div>
+                <button id="closeSidebar" class="absolute right-4 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                    <span class="text-2xl leading-none">×</span>
+                </button>
+            </div>
+
+            <!-- Sidebar Content -->
+            <div class="flex-grow overflow-y-auto p-4 custom-scrollbar">
+                <div id="historyList" class="space-y-3">
+                    <!-- History items will be inserted here dynamically -->
+                    <div class="text-center text-gray-400 py-12" id="emptyHistory">
+                        <div class="text-6xl mb-3">📭</div>
+                        <p class="text-sm" data-i18n="history.empty">No hay predicciones guardadas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-gray-200 bg-white">
+                <button id="clearHistory" class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2.5 rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                    <span class="text-lg">🗑️</span>
+                    <span data-i18n="history.clear">Limpiar todo</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            
+<div class="container mx-auto px-4 py-12 max-w-3xl">
+    <!-- Progress Bar -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold" data-i18n="form.step">Paso</span>
+            <span class="text-sm text-gray-600">
+                <span id="currentStep">1</span> <span data-i18n="form.of">de</span> 2
+            </span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 50%"></div>
+        </div>
+    </div>
+    
+    <!-- Form Container -->
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <form id="predictionForm" data-form-id="new">
+            
+            <!-- Step 1: Datos Personales -->
+            <div id="step1" class="step-content">
+                <h2 class="text-2xl font-bold mb-6" data-i18n="form.personal.title">Datos Personales</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.name">
+                            Nombre (Opcional)
+                        </label>
+                        <input type="text" name="nombre" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.age">
+                            Edad *
+                        </label>
+                        <input type="number" name="edad" min="18" max="100" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="text-red-500 text-xs hidden error-msg" data-i18n="form.required">Este campo es obligatorio</span>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.country">
+                            País *
+                        </label>
+                        <select name="pais" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" data-i18n="form.select">Selecciona...</option>
+                            <option value="Brasil" data-i18n="country.brasil">🇧🇷 Brasil</option>
+                            <option value="China" data-i18n="country.china">🇨🇳 China</option>
+                            <option value="Alemania" data-i18n="country.alemania">🇩🇪 Alemania</option>
+                            <option value="Pakistán" data-i18n="country.pakistan">🇵🇰 Pakistán</option>
+                            <option value="USA" data-i18n="country.usa">🇺🇸 USA</option>
+                            <option value="India" data-i18n="country.india">🇮🇳 India</option>
+                            <option value="Vietnam" data-i18n="country.vietnam">🇻🇳 Vietnam</option>
+                            <option value="Nigeria" data-i18n="country.nigeria">🇳🇬 Nigeria</option>
+                        </select>
+                        <span class="text-red-500 text-xs hidden error-msg" data-i18n="form.required">Este campo es obligatorio</span>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.personal.gender">
+                            Género *
+                        </label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="genero" value="Hombre" required class="mr-2">
+                                <span data-i18n="form.personal.gender.male">Hombre</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="genero" value="Mujer" required class="mr-2">
+                                <span data-i18n="form.personal.gender.female">Mujer</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="genero" value="Otro" required class="mr-2">
+                                <span data-i18n="form.personal.gender.other">Otro</span>
+                            </label>
+                        </div>
+                        <span class="text-red-500 text-xs hidden error-msg" data-i18n="form.required">Este campo es obligatorio</span>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end mt-6">
+                    <button type="button" onclick="nextStep()" 
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        <span data-i18n="form.next">Siguiente</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Datos de Formación -->
+            <div id="step2" class="step-content hidden">
+                <h2 class="text-2xl font-bold mb-6" data-i18n="form.education.title">Datos de Formación</h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.education.degree">Titulación *</label>
+                        <select name="titulacion" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" data-i18n="form.select">Selecciona...</option>
+                            <option value="Grado" data-i18n="degree.bachelor">Grado</option>
+                            <option value="Master" data-i18n="degree.master">Master</option>
+                            <option value="PHD" data-i18n="degree.phd">PHD</option>
+                            <option value="FP" data-i18n="degree.fp">FP</option>
+                        </select>
+                    </div>
+
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.education.field">Campo de estudio *</label>
+                        <select name="campoEstudio" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" data-i18n="form.select">Selecciona...</option>
+                            <option value="Artes" data-i18n="field.arts">Artes</option>
+                            <option value="Ing" data-i18n="field.engineering">Ingeniería</option>
+                            <option value="IT" data-i18n="field.it">IT</option>
+                            <option value="Salud" data-i18n="field.health">Salud</option>
+                            <option value="S.Sociales" data-i18n="field.social">Ciencias Sociales</option>
+                            <option value="Empresa" data-i18n="field.business">Empresa</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.education.english">Nivel de inglés *</label>
+                        <select name="nivelIngles" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" data-i18n="form.select">Selecciona...</option>
+                            <option value="Básico" data-i18n="english.basic">Básico</option>
+                            <option value="Intermedio" data-i18n="english.intermediate">Intermedio</option>
+                            <option value="Avanzado" data-i18n="english.advanced">Avanzado</option>
+                            <option value="Fluido" data-i18n="english.fluent">Fluido</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.education.ranking">Ranking Universidad *</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="universidadRanking" value="Alto" required class="mr-2">
+                                <span data-i18n="ranking.high">Alto</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="universidadRanking" value="Medio" required class="mr-2">
+                                <span data-i18n="ranking.medium">Medio</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="universidadRanking" value="Bajo" required class="mr-2">
+                                <span data-i18n="ranking.low">Bajo</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.education.region">Región de estudio *</label>
+                        <select name="regionEstudio" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" data-i18n="form.select">Selecciona...</option>
+                            <option value="Australia" data-i18n="region.australia">Australia</option>
+                            <option value="Europa" data-i18n="region.europe">Europa</option>
+                            <option value="Canadá" data-i18n="region.canada">Canadá</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="form.education.grade">Nota media (0-10) *</label>
+                        <input type="number" name="notaMedia" min="0" max="10" step="0.1" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+
+                    <div class="col-span-2">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <label class="flex items-center cursor-pointer group">
+                                <input type="checkbox" name="practicas"
+                                       class="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 transition-all">
+                                <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors" data-i18n="form.education.internship">
+                                    ✓ Realicé prácticas profesionales durante mi formación
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button type="button" onclick="previousStep()"
+                            class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
+                        <span data-i18n="form.previous">Anterior</span>
+                    </button>
+                    <button type="button" onclick="submitForm()"
+                            class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                        <span data-i18n="form.submit">Obtener Predicción</span>
+                    </button>
+                </div>
+            </div>
+            
+        </form>
+    </div>
+    
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-xl shadow-xl text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-lg font-semibold" data-i18n="loading.processing">Procesando tu predicción...</p>
+        </div>
+    </div>
+</div>
+
+        </main>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm">© 2025 Predicción Salarial - Proyecto Profesión</p>
+        </div>
+    </footer>
+    
+    <!-- Global JavaScript -->
+    <script src="js/app.js"></script>
+    <script src="js/demo.js"></script>
+    
+    
+<script>
+    const formId = "new";
+</script>
+
+</body>
+</html>
